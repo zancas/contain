@@ -9,10 +9,10 @@ Functions:
 import os
 import pathlib
 
-from .types import ProjectId
+from .types import Project
 
 
-def activate(project: ProjectId = None):
+def activate(project: Project = '.'):
     """
     Usage:
       contain activate [<project>]
@@ -23,7 +23,7 @@ def activate(project: ProjectId = None):
     _get_project_path(project)
 
 
-def _get_project_path(project: ProjectId):
+def _get_project_path(project: Project):
     """Find the path of the project based on the project name."""
     if not project:
         return pathlib.Path(os.getcwd())

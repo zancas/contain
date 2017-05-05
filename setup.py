@@ -17,7 +17,7 @@ setup(
     use_scm_version=True,
     packages=find_packages(exclude=['tests', 'docs']),
     install_requires=[
-        'docker-py >= 1.10.6, < 1.11',
+        'docker >= 2.2.1, < 3',
         'jinja2 >= 2.8, < 3',
         'rcli >= 0.2.6, < 0.3'
     ],

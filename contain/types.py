@@ -8,4 +8,4 @@ Types:
 from typingplus.types import Length
 
 
-ProjectId = Length[str, 1:]
+Project = Length[str, 1:]
