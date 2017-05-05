@@ -11,7 +11,7 @@ from pathlib import Path
 from rcli.display import run_tasks
 from .types import Project
 
-def init(project: Project = '.'):
+class Init(object):
     """
     Usage:
       contain init [<project>]
@@ -25,8 +25,9 @@ def init(project: Project = '.'):
     Options:
       -h, --help  Display this message.
     """
-    # XXX query the list of projects to see if it includes project
-    project_path = Path(project)
-    return run_tasks(
-        'Creating Initial Container for Project {}.'.format(project),
-        [('{}'.format(project), lambda: '{}'.format(project))])
+    def __call__(self, project: Project = '.'):
+        # XXX query the list of projects to see if it includes project
+        project_path = Path(project)
+        return run_tasks(
+            'Creating Initial Container for Project {}.'.format(project),
+            [('{}'.format(project), lambda: '{}'.format(project))])
