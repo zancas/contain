@@ -1,24 +1,23 @@
-contain
-=======
+containment
+===========
 
 |PyPI| |Python Versions| |Build Status| |Coverage Status| |Code Quality|
 
 *Automate the creation and management of development containers.*
 
-``contain`` makes it easy to create and share reusable container images that
-provide a consistent, yet familiar, development environment.
+``containment`` makes it easy to create and share reusable container images
+that provide a consistent and transparent development environment.
 
-``contain`` was inspired by Python's virtualenv_ package. Like
-``virtualenv``, ``contain`` separates project dependencies from packages
+``containment`` was inspired by Python's virtualenv_ package. Like
+``virtualenv``, ``containment`` separates project dependencies from packages
 installed on the development machine but additionally separates your project's
 operating system dependencies to guarantee that all developers are using a
 consistent set of dependencies.
 
-Unlike with traditional container-based approaches, ``contain`` creates an
+Unlike with traditional container-based approaches, ``containment`` creates an
 additional layer to make the use of the development container more seamless.
-``contain`` tries to be as invisible to the user as possible, by using the
+``containment`` tries to be as invisible to the user as possible, by using the
 same shell, development tools, and configuration already defined by the user.
-``contain`` should never feel like it hinders or slows the development process.
 
 
 Installation
@@ -28,11 +27,11 @@ Currently, the easiest method is to install it using pip:
 
 .. code-block:: bash
 
-    $ pip3 install contain
+    $ pip3 install containment
 
 
 In the future, there will be operating system packages to simplify the
-installation of ``contain``.
+installation of ``containment``.
 
 
 Basic Usage
@@ -41,7 +40,7 @@ Basic Usage
 .. code-block:: bash
 
     $ cd path/to/project
-    $ contain
+    $ containment
 
 
 .. _virtualenv: https://github.com/pypa/virtualenv
