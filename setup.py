@@ -17,13 +17,12 @@ setup(
     use_scm_version=True,
     packages=find_packages(exclude=['tests', 'docs']),
     install_requires=[
-        'docker-py >= 1.10.6, < 1.11',
         'jinja2 >= 2.8, < 3',
-        'rcli >= 0.2.6, < 0.3'
+        'rcli >= 0.3.3, < 0.4'
     ],
     setup_requires=[
         'pytest-runner',
-        'rcli >= 3, < 4',
+        'rcli >= 0.3.3, < 0.4',
         'setuptools_scm'
     ],
     tests_require=[

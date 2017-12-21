@@ -15,12 +15,12 @@ from .types import ProjectId
 def activate(project: ProjectId = None):
     """
     Usage:
-      contain activate [<project>]
+      containment activate [<project>]
 
     Arguments:
       <project>  The name of the project to activate.
     """
-    _get_project_path(project)
+    print(_get_project_path(project))
 
 
 def _get_project_path(project: ProjectId):
@@ -29,8 +29,10 @@ def _get_project_path(project: ProjectId):
         return pathlib.Path(os.getcwd())
     default_path = os.environ.get('CONTAINED_PROJECTS_PATH', '.')
     projects_path = pathlib.Path(default_path)
-    matches = (p for p in projects_path.iterdir() if p == project)
-    project_path = next(matches, None)
+    project_path = next(
+        (p for p in projects_path.iterdir() if p == project),
+        None
+        )
     if not project_path:
         raise ValueError('Unknown project "{}"'.format(project))
     return pathlib.Path(project_path)
