@@ -18,7 +18,8 @@ setup(
     packages=find_packages(exclude=['tests', 'docs']),
     install_requires=[
         'jinja2 >= 2.8, < 3',
-        'rcli >= 0.3.3, < 0.4'
+        'rcli >= 0.3.3, < 0.4',
+        'typet >= 0.3.3, < 0.4'
     ],
     setup_requires=[
         'pytest-runner',
