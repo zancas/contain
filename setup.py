@@ -8,6 +8,8 @@ from setuptools import (
 )
 
 
+common_requires = [ 'rcli >= 0.4.0, < 0.5' ]
+
 setup(
     name='containment',
     author='Za Wilgustus',
@@ -18,14 +20,12 @@ setup(
     packages=find_packages(exclude=['tests', 'docs']),
     install_requires=[
         'jinja2 >= 2.8, < 3',
-        'rcli >= 0.3.3, < 0.4',
         'typet >= 0.3.3, < 0.4'
-    ],
+    ] + common_requires,
     setup_requires=[
         'pytest-runner',
-        'rcli >= 0.3.3, < 0.4',
         'setuptools_scm'
-    ],
+    ] + common_requires,
     tests_require=[
         'pytest >= 3, < 4'
     ],
