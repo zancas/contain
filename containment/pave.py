@@ -20,8 +20,12 @@ STAGE = pathlib.Path(os.environ["PWD"]).joinpath(".containment")
 EXTERNALBASIS = ("ubuntu@sha256:d3fdf5b1f8e8a155c17d5786280af1f5a04c10e9514"
                  "5a515279cf17abdf0191f")
 EQUIPMENT_MANIFEST = '["vim", "ipython", "pytest"]'
-
+USER = os.environ["USER"]
 DOCKERFILE_TEMPLATE = """FROM {EXTERNALBASIS}"""
+RUN apt update
+RUN apt install sudo
+RUN adduser --uid `id -u`  {USER}"""  
+
 
 def _assemble_default_wardrobe():
     DEFAULTS.mkdir(parents=True)
@@ -35,7 +39,7 @@ def _write_entrypoint():
 
 
 def _compose_Dockerfile():
-    
+    # Generate the basic dockerfile:
 
 def pave():
     """
