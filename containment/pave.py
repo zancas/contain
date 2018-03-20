@@ -21,10 +21,12 @@ EXTERNALBASIS = ("ubuntu@sha256:d3fdf5b1f8e8a155c17d5786280af1f5a04c10e9514"
                  "5a515279cf17abdf0191f")
 EQUIPMENT_MANIFEST = '["vim", "ipython", "pytest"]'
 USER = os.environ["USER"]
-DOCKERFILE_TEMPLATE = """FROM {EXTERNALBASIS}"""
+DOCKERFILE_TEMPLATE = f"""FROM {EXTERNALBASIS}
 RUN apt update
-RUN apt install sudo
-RUN adduser --uid `id -u`  {USER}"""  
+RUN apt install sudo"""
+
+
+#RUN adduser --uid `id -u`  {USER}"""  
 
 
 def _assemble_default_wardrobe():
@@ -40,12 +42,21 @@ def _write_entrypoint():
 
 def _compose_Dockerfile():
     # Generate the basic dockerfile:
+    pass
 
 def pave():
     """
     Usage:
       containment pave
     """
+    if not STAGE.is_dir():
+        STAGE.mkdir(parents=True, exist_ok=False)
+        COMMUNITY_BASE = STAGE.joinpath("base")
+        COMMUNITY_BASE.write_text(DOCKERFILE_TEMPLATE)
+    
+    #else:
+        # BASIS is default pump that into the community stage.
+    #    print
     if WARDROBE.is_dir():
         print(WARDROBE.name)
         return
