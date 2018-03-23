@@ -12,8 +12,16 @@ modified by the containment pave or activate commands.
 import os
 import pathlib
 
-WARDROBE = pathlib.Path(os.environ["HOME"]).joinpath(".containment")
-DEFAULTS = WARDROBE.joinpath("defaults")
+from .exceptions import ContainmentException
+
+PROJECT = pathlib.Path(os.environ['PWD'])
+if not PROJECT.joinpath(".git").is_dir():
+    raise ContainmentException("'pave' must be run in a .git containing dir.")
+
+
+PERSONAL = pathlib.Path(os.environ["HOME"]).joinpath(".containment")
+PROJECTS = PERSONAL.joinpath("projects")
+DEFAULTS = PERSONAL.joinpath("defaults")
 BASIS = DEFAULTS.joinpath("basis.json")
 EQUIPMENT = DEFAULTS.joinpath("equipment.json")
 STAGE = pathlib.Path(os.environ["PWD"]).joinpath(".containment")
@@ -21,12 +29,12 @@ EXTERNALBASIS = ("ubuntu@sha256:d3fdf5b1f8e8a155c17d5786280af1f5a04c10e9514"
                  "5a515279cf17abdf0191f")
 EQUIPMENT_MANIFEST = '["vim", "ipython", "pytest"]'
 USER = os.environ["USER"]
-DOCKERFILE_TEMPLATE = f"""FROM {EXTERNALBASIS}
+BASE_TEMPLATE = f"""FROM {EXTERNALBASIS}
 RUN apt update
 RUN apt install sudo"""
 
 
-#RUN adduser --uid `id -u`  {USER}"""  
+"""#RUN adduser --uid `id -u`  {USER}"""  
 
 
 def _assemble_default_wardrobe():
@@ -52,13 +60,13 @@ def pave():
     if not STAGE.is_dir():
         STAGE.mkdir(parents=True, exist_ok=False)
         COMMUNITY_BASE = STAGE.joinpath("base")
-        COMMUNITY_BASE.write_text(DOCKERFILE_TEMPLATE)
+        COMMUNITY_BASE.write_text(BASE_TEMPLATE)
     
     #else:
         # BASIS is default pump that into the community stage.
     #    print
-    if WARDROBE.is_dir():
-        print(WARDROBE.name)
+    if PERSONAL.is_dir():
+        print(PERSONAL.name)
         return
     else:  # This is the first use by this User!!
         _assemble_default_wardrobe()
@@ -66,4 +74,4 @@ def pave():
 
 
 
-        #  if STAGE == WARDROBE:  # User is home, there is no project. 
+        #  if STAGE == PERSONAL:  # User is home, there is no project. 
