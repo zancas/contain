@@ -26,7 +26,7 @@ RUN apt update
 RUN apt install sudo"""
 
 
-"""#RUN adduser --uid `id -u`  {USER}"""  
+DEFAULT = """RUN adduser --uid `id -u`  {USER}"""  
 
 
 def _write_entrypoint():
@@ -60,7 +60,10 @@ def pave_community(project):
     community_dir.joinpath("base").write_text(BASE_TEMPLATE)
 
 def pave_personal(project: ProjectId = None):
-    if not PROJECTS.is_dir():
-        PROJECTS.mkdir(parents=True, exists_ok=False)
+    personal = PROJECTS.joinpath(project).joinpath("personal")
+    if personal.is_file():
         return
+    else:
+        personal.parent.mkdir(parents=True, exist_ok=True)
+        personal.write_text(f"{DEFAULT}")
     

@@ -12,6 +12,7 @@ import subprocess
 
 from .pave import PROJECTS
 from .pave import pave_community
+from .pave import pave_personal
 from .types import ProjectId
 
 
@@ -38,15 +39,14 @@ def activate(project: ProjectId = None):
     personal_string = PROJECTS\
                       .joinpath(proj_name)\
                       .joinpath("personal").read_text()
-    print(base_string+personal_string)
+    dockerfiletext = '\n'.join([base_string, personal_string])
+    print(dockerfiletext)
     
 
 def _get_project_path(project: ProjectId):
     """Find the path of the project based on the project name."""
     if not project:
         return pathlib.Path(os.getcwd())
-    default_path = os.environ.get('CONTAINED_PROJECTS_PATH', '.')
-    projects_path = pathlib.Path(default_path)
     project_path = next(
         (p for p in projects_path.iterdir() if p == project),
         None
