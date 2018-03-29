@@ -8,7 +8,10 @@ Functions:
 
 import os
 import pathlib
+import subprocess
 
+from .pave import PROJECTS
+from .pave import pave_community
 from .types import ProjectId
 
 
@@ -21,7 +24,22 @@ def activate(project: ProjectId = None):
       <project>  The name of the project to activate.
     """
     print(_get_project_path(project))
+    proj_path = _get_project_path(project)
+    proj_name = proj_path.name
+    print(proj_name)
+    proj_base = proj_path.joinpath('.containment').joinpath('base')
+    if not proj_base.is_file():
+        # Create the base file since it did not exist
+        pave_community(proj_path)
+    base_string = proj_base.read_text()
+    if not PROJECTS.is_dir():
+        pave_personal(proj_name)
 
+    personal_string = PROJECTS\
+                      .joinpath(proj_name)\
+                      .joinpath("personal").read_text()
+    print(base_string+personal_string)
+    
 
 def _get_project_path(project: ProjectId):
     """Find the path of the project based on the project name."""
