@@ -6,6 +6,7 @@ Functions:
         the current directory.
 """
 
+import json
 import os
 import pathlib
 import subprocess
@@ -16,21 +17,46 @@ import docker
 from .types import ProjectId
 
 USER = os.environ["USER"]
+SHELL = os.environ["SHELL"]
 USERID = subprocess.getoutput("id -u")
-ENTRYPOINT = f"""#! /bin/bash
-mkdir /home/{USER}
-useradd --uid {USERID} --home /home/{USER} {USER}
-exec su - {USER} $@"""  
 personal = pathlib.Path(os.environ["HOME"]).joinpath(".containment")
+
+GENERAL_PERSONAL_PACKAGES = ["vim", "tmux", "git"] # These are examples.
+DOCKERFILE_TEMPLATE = '\n'.join([PERSONAL_APT_PACKAGES, USER_PROJECT_PLUGIN])
+ENTRYPOINT_TEMPLATE = """#! {SHELL}
+cd {PROJECT_DIR}
+exec {SHELL}"""
+RUNSCRIPT_TEMPLATE = \
+"""docker run -it -v {HOME}:{HOME} -v {PROJECTDIRNAME}:{PROJECTDIRNAME} \
+   --entrypoint=/entrypoint.sh -u {USER} {TAG}:latest"""
 
 def _get_build_id():
     return build_id
 
-def _assure_personal():
+def _format_entrypoint(project):
+    proj_path = _get_project_path(project)
+    PROJECTDIRNAME = proj_path.cwd().name
+    return ENTRYPOINT_TEMPLATE.format()
+
+def _assure_personal(project: ProjectId):
     if not personal.is_dir():
         personal.mkdir()
-        personal.joinpath("projects").mkdir()
-        personal.joinpath("entrypoint.sh").write_text(ENTRYPOINT)
+        json.dump(
+            GENERAL_PERSONAL_PACKAGES,
+            personal.joinpath("packages.json").open(mode='w')
+        )
+        projects = personal.joinpath("projects")
+        projects.mkdir()
+        print(type(project))
+        print(project)
+        _assure_project(projects, project)
+
+def _assure_project(projects, project)
+    current_proj = projects.joinpath(project)
+    if not current_proj.is_dir():
+        current_proj.mkdir()
+        current_proj.joinpath("entrypoint.sh").write_text(
+            _format_entrypoint(project))
 
 def activate(project: ProjectId = None):
     """
@@ -40,18 +66,16 @@ def activate(project: ProjectId = None):
     Arguments:
       <project>  The name of the project to activate.
     """
-    _assure_personal() 
     # This is derived from the clone
-    proj_path = _get_project_path(project)
+    _assure_personal(project) 
     # These are paths that point to a dir inside home
-    personal_projs = personal.joinpath("projects")
+    """personal_projs = personal.joinpath("projects")
     personal_proj = personal_projs.joinpath(proj_path.name)
     print(personal_proj.as_posix())
     
     dclient = docker.from_env()
     proj_name = proj_path.name
-    print(proj_name)
-    """community_base = proj_path.joinpath('.containment').joinpath('base')
+    community_base = proj_path.joinpath('.containment').joinpath('base')
     if not community_base.is_file():
         # Create the base file since it did not exist
         pave_community(proj_path)
