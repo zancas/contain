@@ -15,11 +15,22 @@ import docker
 
 from .types import ProjectId
 
-ENTRYPOINT = """adduser --uid `id -u` {USER}"""  
+USER = os.environ["USER"]
+USERID = subprocess.getoutput("id -u")
+ENTRYPOINT = f"""#! /bin/bash
+mkdir /home/{USER}
+useradd --uid {USERID} --home /home/{USER} {USER}
+exec su - {USER} $@"""  
 personal = pathlib.Path(os.environ["HOME"]).joinpath(".containment")
 
 def _get_build_id():
     return build_id
+
+def _assure_personal():
+    if not personal.is_dir():
+        personal.mkdir()
+        personal.joinpath("projects").mkdir()
+        personal.joinpath("entrypoint.sh").write_text(ENTRYPOINT)
 
 def activate(project: ProjectId = None):
     """
@@ -29,9 +40,7 @@ def activate(project: ProjectId = None):
     Arguments:
       <project>  The name of the project to activate.
     """
-    if not personal.is_dir():
-        #  Asssume this is the first run of containment.
-        
+    _assure_personal() 
     # This is derived from the clone
     proj_path = _get_project_path(project)
     # These are paths that point to a dir inside home
