@@ -42,6 +42,26 @@ RUNSCRIPT = \
 f"""docker run -it -v {HOME}:{HOME} -v {PROJECT_DIR}:{PROJECT_DIR} \
    --entrypoint=/entrypoint.sh -u {USER} {TAG}:latest"""
 
+def pave_profile():
+    """
+    Usage:
+      containment pave_profile
+    """
+    
+
+def pave_community():
+    """
+    Usage:
+      containment pave_community
+    """
+
+
+def pave_project(project: ProjectId = None):
+    """
+    Usage:
+      containment pave_project <project>
+    """
+
 def _assure_personal():
     if not PERSONAL.is_dir():
         PERSONAL.mkdir()
@@ -50,10 +70,10 @@ def _assure_personal():
             PERSONAL.joinpath("packages.json").open(mode='w')
         )
         PERSONAL_PROJECTS_PATH.mkdir()
-    # _assure_pproject even if personal already exists
-    _assure_pproject()
+    # _assure_profile even if personal already exists
+    _assure_profile()
 
-def _assure_pproject():
+def _assure_profile():
     current_proj = PERSONAL_PROJECTS_PATH.joinpath(PROJECT_NAME)
     if not current_proj.is_dir():
         current_proj.mkdir()
