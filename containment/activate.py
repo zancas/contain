@@ -16,77 +16,77 @@ import docker
 
 from .types import ProjectId
 
+PROJECT_PATH = pathlib.Path(os.getcwd())
+PROJECT_NAME = PROJECT_PATH.name
+TAG = f"containment/{PROJECT_NAME}"
+PROJECT_DIR = PROJECT_PATH.as_posix()
 USER = os.environ["USER"]
 SHELL = os.environ["SHELL"]
 USERID = subprocess.getoutput("id -u")
-personal = pathlib.Path(os.environ["HOME"]).joinpath(".containment")
+HOME = os.environ["HOME"]
+PERSONAL = pathlib.Path(HOME).joinpath(".containment")
+PERSONAL_PROJECTS_PATH = PERSONAL.joinpath("projects")
 
 GENERAL_PERSONAL_PACKAGES = ["vim", "tmux", "git"] # These are examples.
 
 APT_PACKAGES = "RUN    apt-get install -y "+" ".join(GENERAL_PERSONAL_PACKAGES)
-PROJ_PLUGIN_TEMPLATE = \
-"""RUN     useradd --uid 1000 --home /home/{USER} {USER}
+PROJ_PLUGIN = \
+f"""RUN     useradd --uid 1000 --home /home/{USER} {USER}
 COPY    ./entrypoint.sh entrypoint.sh
 RUN     chmod +x entrypoint.sh"""
 DOCKERFILE_TEMPLATE = '\n'.join([APT_PACKAGES, PROJ_PLUGIN_TEMPLATE.format()])
-ENTRYPOINT_TEMPLATE = """#! {SHELL}
+ENTRYPOINT = f"""#! {SHELL}
 cd {PROJECT_DIR}
 exec {SHELL}"""
-RUNSCRIPT_TEMPLATE = \
-"""docker run -it -v {HOME}:{HOME} -v {PROJECTDIRNAME}:{PROJECTDIRNAME} \
+RUNSCRIPT = \
+f"""docker run -it -v {HOME}:{HOME} -v {PROJECT_DIR}:{PROJECT_DIR} \
    --entrypoint=/entrypoint.sh -u {USER} {TAG}:latest"""
 
-def _get_build_id():
-    return build_id
-
-def _format_entrypoint(project):
-    proj_path = _get_project_path(project)
-    PROJECTDIRNAME = proj_path.cwd().name
-    return ENTRYPOINT_TEMPLATE.format()
-
-def _assure_personal(project: ProjectId):
-    if not personal.is_dir():
-        personal.mkdir()
+def _assure_personal():
+    if not PERSONAL.is_dir():
+        PERSONAL.mkdir()
         json.dump(
             GENERAL_PERSONAL_PACKAGES,
-            personal.joinpath("packages.json").open(mode='w')
+            PERSONAL.joinpath("packages.json").open(mode='w')
         )
-        projects = personal.joinpath("projects")
-        projects.mkdir()
-        print(type(project))
-        print(project)
-    # _assure_project even if personal already exists
-    _assure_project(projects, project)
+        PERSONAL_PROJECTS_PATH.mkdir()
+    # _assure_pproject even if personal already exists
+    _assure_pproject()
 
-def _assure_project(projects, project):
-    current_proj = projects.joinpath(project)
+def _assure_pproject():
+    current_proj = PERSONAL_PROJECTS_PATH.joinpath(PROJECT_NAME)
     if not current_proj.is_dir():
         current_proj.mkdir()
-        current_proj.joinpath("entrypoint.sh").write_text(
-            _format_entrypoint(project))
+        current_proj.joinpath("entrypoint.sh").write_text(ENTRYPOINT)
         current_proj.joinpath("packages.json").write_text("[]")
+        _write_dockerfile()
 
-def activate(project: ProjectId = None):
+def _write_dockerfile():
+    docker_text = _assemble_dockerfile()
+    current_proj.joinpath("Dockerfile").write_text(docker_text)
+
+def _assemble_dockerfile():
+    community_layer = 
+        
+
+def activate():
     """
     Usage:
-      containment activate [<project>]
-
-    Arguments:
-      <project>  The name of the project to activate.
+      containment activate
     """
     # This is derived from the clone
-    _assure_personal(project) 
+    _assure_personal() 
     # These are paths that point to a dir inside home
     """personal_projs = personal.joinpath("projects")
-    personal_proj = personal_projs.joinpath(proj_path.name)
+    personal_proj = personal_projs.joinpath(PROJECT_PATH.name)
     print(personal_proj.as_posix())
     
     dclient = docker.from_env()
-    proj_name = proj_path.name
-    community_base = proj_path.joinpath('.containment').joinpath('base')
+    proj_name = PROJECT_PATH.name
+    community_base = PROJECT_PATH.joinpath('.containment').joinpath('base')
     if not community_base.is_file():
         # Create the base file since it did not exist
-        pave_community(proj_path)
+        pave_community(PROJECT_PATH)
     base_string = community_base.read_text()
     if not PROJECTS.is_dir():
         pave_personal(proj_name)
@@ -95,16 +95,3 @@ def activate(project: ProjectId = None):
     personal_string = personal_prefs.read_text()
     dockerfilestringIO = io.StringIO('\n'.join([base_string, personal_string]))
     print(dockerfilestringIO)"""
-                                
-
-def _get_project_path(project: ProjectId):
-    """Find the path of the project based on the project name."""
-    if not project:
-        return pathlib.Path(os.getcwd())
-    project_path = next(
-        (p for p in projects_path.iterdir() if p == project),
-        None
-        )
-    if not project_path:
-        raise ValueError('Unknown project "{}"'.format(project))
-    return pathlib.Path(project_path)
