@@ -22,7 +22,13 @@ USERID = subprocess.getoutput("id -u")
 personal = pathlib.Path(os.environ["HOME"]).joinpath(".containment")
 
 GENERAL_PERSONAL_PACKAGES = ["vim", "tmux", "git"] # These are examples.
-DOCKERFILE_TEMPLATE = '\n'.join([PERSONAL_APT_PACKAGES, USER_PROJECT_PLUGIN])
+
+APT_PACKAGES = "RUN    apt-get install -y "+" ".join(GENERAL_PERSONAL_PACKAGES)
+PROJ_PLUGIN_TEMPLATE = \
+"""RUN     useradd --uid 1000 --home /home/{USER} {USER}
+COPY    ./entrypoint.sh entrypoint.sh
+RUN     chmod +x entrypoint.sh"""
+DOCKERFILE_TEMPLATE = '\n'.join([APT_PACKAGES, PROJ_PLUGIN_TEMPLATE.format()])
 ENTRYPOINT_TEMPLATE = """#! {SHELL}
 cd {PROJECT_DIR}
 exec {SHELL}"""
@@ -49,14 +55,16 @@ def _assure_personal(project: ProjectId):
         projects.mkdir()
         print(type(project))
         print(project)
-        _assure_project(projects, project)
+    # _assure_project even if personal already exists
+    _assure_project(projects, project)
 
-def _assure_project(projects, project)
+def _assure_project(projects, project):
     current_proj = projects.joinpath(project)
     if not current_proj.is_dir():
         current_proj.mkdir()
         current_proj.joinpath("entrypoint.sh").write_text(
             _format_entrypoint(project))
+        current_proj.joinpath("packages.json").write_text("[]")
 
 def activate(project: ProjectId = None):
     """
