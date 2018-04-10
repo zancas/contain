@@ -16,19 +16,27 @@ import docker
 
 from .types import ProjectId
 
-PROJECT_PATH = pathlib.Path(os.getcwd())
-PROJECT_NAME = PROJECT_PATH.name
+# COMMUNITY ACQUISITION
+COMMUNITY_ROOT_PATH = pathlib.Path(os.getcwd())
+PROJECT_NAME = COMMUNITY_ROOT_PATH.name
+
+# PROFILE ACQUISITION
+HOME = os.environ["HOME"]
+PERSONAL_PROFILE = pathlib.Path(HOME).joinpath(".containment")
+PROJECTS_PATH = PERSONAL_PROFILE.joinpath("projects")
+
+# PROJECT ACQUISITION
+PROJECT_PATH = PROJECT_PATH.joinpath(PROJECT_NAME)
 TAG = f"containment/{PROJECT_NAME}"
-PROJECT_DIR = PROJECT_PATH.as_posix()
+
+# CONFIGURATION STRING VARIABLE VALUES
+COMMUNITY_ROOTDIRNAME = COMMUNITY_ROOT_PATH.as_posix()
 USER = os.environ["USER"]
 SHELL = os.environ["SHELL"]
 USERID = subprocess.getoutput("id -u")
-HOME = os.environ["HOME"]
-PERSONAL = pathlib.Path(HOME).joinpath(".containment")
-PERSONAL_PROJECTS_PATH = PERSONAL.joinpath("projects")
-
 GENERAL_PERSONAL_PACKAGES = ["vim", "tmux", "git"] # These are examples.
 
+# CONFIGURATION STRINGS
 APT_PACKAGES = "RUN    apt-get install -y "+" ".join(GENERAL_PERSONAL_PACKAGES)
 PROJ_PLUGIN = \
 f"""RUN     useradd --uid 1000 --home /home/{USER} {USER}
@@ -36,24 +44,25 @@ COPY    ./entrypoint.sh entrypoint.sh
 RUN     chmod +x entrypoint.sh"""
 DOCKERFILE_TEMPLATE = '\n'.join([APT_PACKAGES, PROJ_PLUGIN_TEMPLATE.format()])
 ENTRYPOINT = f"""#! {SHELL}
-cd {PROJECT_DIR}
+cd {COMMUNITY_ROOTDIRNAME}
 exec {SHELL}"""
 RUNSCRIPT = \
-f"""docker run -it -v {HOME}:{HOME} -v {PROJECT_DIR}:{PROJECT_DIR} \
+f"""docker run -it -v {HOME}:{HOME} -v {COMMUNITY_ROOTDIRNAME}:{COMMUNITY_ROOTDIRNAME} \
    --entrypoint=/entrypoint.sh -u {USER} {TAG}:latest"""
+
+
 
 def pave_profile():
     """
     Usage:
       containment pave_profile
     """
-    
-
-def pave_community():
-    """
-    Usage:
-      containment pave_community
-    """
+    PERSONAL_PROFILE.mkdir()
+    json.dump(
+        GENERAL_PERSONAL_PACKAGES,
+        PERSONAL_PROFILE.joinpath("packages.json").open(mode='w')
+    )
+    PROJECTS_PATH.mkdir()
 
 
 def pave_project(project: ProjectId = None):
@@ -62,19 +71,21 @@ def pave_project(project: ProjectId = None):
       containment pave_project <project>
     """
 
-def _assure_personal():
-    if not PERSONAL.is_dir():
-        PERSONAL.mkdir()
-        json.dump(
-            GENERAL_PERSONAL_PACKAGES,
-            PERSONAL.joinpath("packages.json").open(mode='w')
-        )
-        PERSONAL_PROJECTS_PATH.mkdir()
-    # _assure_profile even if personal already exists
-    _assure_profile()
 
-def _assure_profile():
-    current_proj = PERSONAL_PROJECTS_PATH.joinpath(PROJECT_NAME)
+def pave_community():
+    """
+    Usage:
+      containment pave_community
+    """
+
+
+
+def _assure_project():
+    if not PERSONAL_PROFILE.is_dir():
+        pave_profile()
+    if not 
+        pave_project()
+    current_proj = PROJECTS_PATH.joinpath(PROJECT_NAME)
     if not current_proj.is_dir():
         current_proj.mkdir()
         current_proj.joinpath("entrypoint.sh").write_text(ENTRYPOINT)
@@ -95,18 +106,18 @@ def activate():
       containment activate
     """
     # This is derived from the clone
-    _assure_personal() 
+    _assure_project() 
     # These are paths that point to a dir inside home
     """personal_projs = personal.joinpath("projects")
-    personal_proj = personal_projs.joinpath(PROJECT_PATH.name)
+    personal_proj = personal_projs.joinpath(COMMUNITY_ROOT_PATH.name)
     print(personal_proj.as_posix())
     
     dclient = docker.from_env()
-    proj_name = PROJECT_PATH.name
-    community_base = PROJECT_PATH.joinpath('.containment').joinpath('base')
+    proj_name = COMMUNITY_ROOT_PATH.name
+    community_base = COMMUNITY_ROOT_PATH.joinpath('.containment').joinpath('base')
     if not community_base.is_file():
         # Create the base file since it did not exist
-        pave_community(PROJECT_PATH)
+        pave_community(COMMUNITY_ROOT_PATH)
     base_string = community_base.read_text()
     if not PROJECTS.is_dir():
         pave_personal(proj_name)
