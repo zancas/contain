@@ -19,6 +19,7 @@ from .types import ProjectId
 # COMMUNITY ACQUISITION
 COMMUNITY_ROOT_PATH = pathlib.Path(os.getcwd())
 PROJECT_NAME = COMMUNITY_ROOT_PATH.name
+COMMUNITY = COMMUNITY_ROOT_PATH.joinpath(".containment")
 
 # PROFILE ACQUISITION
 HOME = os.environ["HOME"]
@@ -26,7 +27,7 @@ PERSONAL_PROFILE = pathlib.Path(HOME).joinpath(".containment")
 PROJECTS_PATH = PERSONAL_PROFILE.joinpath("projects")
 
 # PROJECT ACQUISITION
-PROJECT_PATH = PROJECT_PATH.joinpath(PROJECT_NAME)
+PROJECT_PATH = PROJECTS_PATH.joinpath(PROJECT_NAME)
 TAG = f"containment/{PROJECT_NAME}"
 
 # CONFIGURATION STRING VARIABLE VALUES
@@ -42,15 +43,20 @@ PROJ_PLUGIN = \
 f"""RUN     useradd --uid 1000 --home /home/{USER} {USER}
 COPY    ./entrypoint.sh entrypoint.sh
 RUN     chmod +x entrypoint.sh"""
-DOCKERFILE_TEMPLATE = '\n'.join([APT_PACKAGES, PROJ_PLUGIN_TEMPLATE.format()])
+DOCKERFILE_TEMPLATE = '\n'.join([APT_PACKAGES, PROJ_PLUGIN])
 ENTRYPOINT = f"""#! {SHELL}
 cd {COMMUNITY_ROOTDIRNAME}
 exec {SHELL}"""
 RUNSCRIPT = \
-f"""docker run -it -v {HOME}:{HOME} -v {COMMUNITY_ROOTDIRNAME}:{COMMUNITY_ROOTDIRNAME} \
-   --entrypoint=/entrypoint.sh -u {USER} {TAG}:latest"""
+f"""docker run -it \
+               -v {HOME}:{HOME} \
+               -v {COMMUNITY_ROOTDIRNAME}:{COMMUNITY_ROOTDIRNAME} \
+               --entrypoint=/entrypoint.sh -u {USER} {TAG}:latest"""
 
-
+EXTERNALBASIS = ("ubuntu@sha256:66126c48f804cc6ea441ce48bd592d4c6535b95e752af4"
+                 "d2596f5dbe66cdd209")
+BASE = f"""FROM {EXTERNALBASIS}
+RUN apt-get update && apt-get -y install sudo"""
 
 def pave_profile():
     """
@@ -65,11 +71,18 @@ def pave_profile():
     PROJECTS_PATH.mkdir()
 
 
-def pave_project(project: ProjectId = None):
+def pave_project(target_project_name):
     """
     Usage:
-      containment pave_project <project>
+      containment pave_project <target_project_name>
     """
+    print(target_project_name)
+    project_path = pathlib.Path(target_project_name)
+    project_path.mkdir()
+    _write_dockerfile()
+    project_path.joinpath("entrypoint.sh").write_text(ENTRYPOINT)
+    project_path.joinpath("run_containment.sh").write_text(RUNSCRIPT)
+    project_path.joinpath("packages.json").write_text("[]")
 
 
 def pave_community():
@@ -77,27 +90,25 @@ def pave_community():
     Usage:
       containment pave_community
     """
-
+    COMMUNITY.mkdir()
+    basefile = COMMUNITY.joinpath("base")
+    basefile.write_text(BASE)
 
 
 def _assure_project():
     if not PERSONAL_PROFILE.is_dir():
         pave_profile()
-    if not 
-        pave_project()
-    current_proj = PROJECTS_PATH.joinpath(PROJECT_NAME)
-    if not current_proj.is_dir():
-        current_proj.mkdir()
-        current_proj.joinpath("entrypoint.sh").write_text(ENTRYPOINT)
-        current_proj.joinpath("packages.json").write_text("[]")
-        _write_dockerfile()
+    if not PROJECT_PATH.is_dir():
+        pave_project(PROJECT_PATH.as_posix())
+    if not COMMUNITY.is_dir():
+        pave_community()
 
 def _write_dockerfile():
     docker_text = _assemble_dockerfile()
-    current_proj.joinpath("Dockerfile").write_text(docker_text)
+    PROJECT_PATH.joinpath("Dockerfile").write_text(docker_text)
 
 def _assemble_dockerfile():
-    community_layer = 
+    return "community_layer = "
         
 
 def activate():
