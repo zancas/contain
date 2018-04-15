@@ -20,6 +20,7 @@ from .types import ProjectId
 COMMUNITY_ROOT_PATH = pathlib.Path(os.getcwd())
 PROJECT_NAME = COMMUNITY_ROOT_PATH.name
 COMMUNITY = COMMUNITY_ROOT_PATH.joinpath(".containment")
+BASE = COMMUNITY.joinpath("base")
 
 # PROFILE ACQUISITION
 HOME = os.environ["HOME"]
@@ -55,7 +56,7 @@ f"""docker run -it \
 
 EXTERNALBASIS = ("ubuntu@sha256:66126c48f804cc6ea441ce48bd592d4c6535b95e752af4"
                  "d2596f5dbe66cdd209")
-BASE = f"""FROM {EXTERNALBASIS}
+BASETEXT = f"""FROM {EXTERNALBASIS}
 RUN apt-get update && apt-get -y install sudo"""
 
 def pave_profile():
@@ -91,24 +92,23 @@ def pave_community():
       containment pave_community
     """
     COMMUNITY.mkdir()
-    basefile = COMMUNITY.joinpath("base")
-    basefile.write_text(BASE)
+    BASE.write_text(BASETEXT)
 
 
 def _assure_project():
+    if not COMMUNITY.is_dir():
+        pave_community()
     if not PERSONAL_PROFILE.is_dir():
         pave_profile()
     if not PROJECT_PATH.is_dir():
         pave_project(PROJECT_PATH.as_posix())
-    if not COMMUNITY.is_dir():
-        pave_community()
 
 def _write_dockerfile():
     docker_text = _assemble_dockerfile()
     PROJECT_PATH.joinpath("Dockerfile").write_text(docker_text)
 
 def _assemble_dockerfile():
-    return "community_layer = "
+    BASELAYER = BASE.read_text()
         
 
 def activate():
