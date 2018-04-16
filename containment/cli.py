@@ -30,6 +30,7 @@ PROJECTS_PATH = PERSONAL_PROFILE.joinpath("projects")
 # PROJECT ACQUISITION
 PROJECT_PATH = PROJECTS_PATH.joinpath(PROJECT_NAME)
 TAG = f"containment/{PROJECT_NAME}"
+DOCKERFILE = PROJECT_PATH.joinpath("Dockerfile")
 
 # CONFIGURATION STRING VARIABLE VALUES
 COMMUNITY_ROOTDIRNAME = COMMUNITY_ROOT_PATH.as_posix()
@@ -44,7 +45,6 @@ PROJ_PLUGIN = \
 f"""RUN     useradd --uid 1000 --home /home/{USER} {USER}
 COPY    ./entrypoint.sh entrypoint.sh
 RUN     chmod +x entrypoint.sh"""
-DOCKERFILE_TEMPLATE = '\n'.join([APT_PACKAGES, PROJ_PLUGIN])
 ENTRYPOINT = f"""#! {SHELL}
 cd {COMMUNITY_ROOTDIRNAME}
 exec {SHELL}"""
@@ -54,10 +54,16 @@ f"""docker run -it \
                -v {COMMUNITY_ROOTDIRNAME}:{COMMUNITY_ROOTDIRNAME} \
                --entrypoint=/entrypoint.sh -u {USER} {TAG}:latest"""
 
-EXTERNALBASIS = ("ubuntu@sha256:66126c48f804cc6ea441ce48bd592d4c6535b95e752af4"
-                 "d2596f5dbe66cdd209")
+
+EXTERNALBASIS = ("ubuntu@sha256:9ee3b83bcaa383e5e3b657f042f4034c92cdd50c03f731"
+                 "66c145c9ceaea9ba7c")
 BASETEXT = f"""FROM    {EXTERNALBASIS}
 RUN     apt-get update && apt-get -y install sudo"""
+
+# docker config
+
+client = docker.from_env()
+dbuildapi = client.api.build
 
 def pave_profile():
     """
@@ -77,7 +83,6 @@ def pave_project(target_project_name):
     Usage:
       containment pave_project <target_project_name>
     """
-    print(target_project_name)
     project_path = pathlib.Path(target_project_name)
     project_path.mkdir()
     _write_dockerfile()
@@ -95,9 +100,8 @@ def pave_community():
     BASE.write_text(BASETEXT)
 
 
-def _assure_project():
+def _assure_config():
     if not COMMUNITY.is_dir():
-        print("COMMUNITY is not a directory.")
         pave_community()
     if not PERSONAL_PROFILE.is_dir():
         pave_profile()
@@ -106,16 +110,21 @@ def _assure_project():
 
 def _write_dockerfile():
     docker_text = _assemble_dockerfile()
-    PROJECT_PATH.joinpath("Dockerfile").write_text(docker_text)
+    DOCKERFILE.write_text(docker_text)
 
 def _assemble_dockerfile():
     BASELAYER = BASE.read_text()
     DOCKERTEXT = '\n'.join([BASELAYER,
                             APT_PACKAGES,
                             PROJ_PLUGIN])
-    print(DOCKERTEXT)
     return DOCKERTEXT
         
+
+def _assure_build():
+    build_actions = []
+    for a in dbuildapi(PROJECT_PATH.as_posix()):
+        build_actions.append(a)
+    
 
 def activate():
     """
@@ -123,23 +132,6 @@ def activate():
       containment activate
     """
     # This is derived from the clone
-    _assure_project() 
-    # These are paths that point to a dir inside home
-    """personal_projs = personal.joinpath("projects")
-    personal_proj = personal_projs.joinpath(COMMUNITY_ROOT_PATH.name)
-    print(personal_proj.as_posix())
+    _assure_config() 
+    _assure_build()
     
-    dclient = docker.from_env()
-    proj_name = COMMUNITY_ROOT_PATH.name
-    community_base = COMMUNITY_ROOT_PATH.joinpath('.containment').joinpath('base')
-    if not community_base.is_file():
-        # Create the base file since it did not exist
-        pave_community(COMMUNITY_ROOT_PATH)
-    base_string = community_base.read_text()
-    if not PROJECTS.is_dir():
-        pave_personal(proj_name)
-    personal_projdir = PROJECTS.joinpath(proj_name)
-    personal_prefs = personal_projdir.joinpath("personal_layer")
-    personal_string = personal_prefs.read_text()
-    dockerfilestringIO = io.StringIO('\n'.join([base_string, personal_string]))
-    print(dockerfilestringIO)"""
