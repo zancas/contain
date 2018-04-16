@@ -39,7 +39,7 @@ USERID = subprocess.getoutput("id -u")
 GENERAL_PERSONAL_PACKAGES = ["vim", "tmux", "git"] # These are examples.
 
 # CONFIGURATION STRINGS
-APT_PACKAGES = "RUN    apt-get install -y "+" ".join(GENERAL_PERSONAL_PACKAGES)
+APT_PACKAGES = "RUN     apt-get install -y "+" ".join(GENERAL_PERSONAL_PACKAGES)
 PROJ_PLUGIN = \
 f"""RUN     useradd --uid 1000 --home /home/{USER} {USER}
 COPY    ./entrypoint.sh entrypoint.sh
@@ -56,8 +56,8 @@ f"""docker run -it \
 
 EXTERNALBASIS = ("ubuntu@sha256:66126c48f804cc6ea441ce48bd592d4c6535b95e752af4"
                  "d2596f5dbe66cdd209")
-BASETEXT = f"""FROM {EXTERNALBASIS}
-RUN apt-get update && apt-get -y install sudo"""
+BASETEXT = f"""FROM    {EXTERNALBASIS}
+RUN     apt-get update && apt-get -y install sudo"""
 
 def pave_profile():
     """
@@ -97,6 +97,7 @@ def pave_community():
 
 def _assure_project():
     if not COMMUNITY.is_dir():
+        print("COMMUNITY is not a directory.")
         pave_community()
     if not PERSONAL_PROFILE.is_dir():
         pave_profile()
@@ -109,6 +110,11 @@ def _write_dockerfile():
 
 def _assemble_dockerfile():
     BASELAYER = BASE.read_text()
+    DOCKERTEXT = '\n'.join([BASELAYER,
+                            APT_PACKAGES,
+                            PROJ_PLUGIN])
+    print(DOCKERTEXT)
+    return DOCKERTEXT
         
 
 def activate():
