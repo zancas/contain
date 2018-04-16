@@ -10,6 +10,7 @@ import json
 import os
 import pathlib
 import subprocess
+import sys
 import time
 
 import docker
@@ -31,7 +32,9 @@ PROJECTS_PATH = PERSONAL_PROFILE.joinpath("projects")
 PROJECT_PATH = PROJECTS_PATH.joinpath(PROJECT_NAME)
 TAG = f"containment/{PROJECT_NAME}"
 DOCKERFILE = PROJECT_PATH.joinpath("Dockerfile")
-
+RUNFILE = PROJECT_PATH.joinpath("run_containment.sh")
+ENTRYPOINTFILE = PROJECT_PATH.joinpath("entrypoint.sh")
+PROJPACKAGESFILE = PROJECT_PATH.joinpath("packages.json")
 # CONFIGURATION STRING VARIABLE VALUES
 COMMUNITY_ROOTDIRNAME = COMMUNITY_ROOT_PATH.as_posix()
 USER = os.environ["USER"]
@@ -43,6 +46,7 @@ GENERAL_PERSONAL_PACKAGES = ["vim", "tmux", "git"] # These are examples.
 APT_PACKAGES = "RUN     apt-get install -y "+" ".join(GENERAL_PERSONAL_PACKAGES)
 PROJ_PLUGIN = \
 f"""RUN     useradd --uid 1000 --home /home/{USER} {USER}
+RUN     echo {USER} ALL=\(ALL\) NOPASSWD: ALL >> /etc/sudoers
 COPY    ./entrypoint.sh entrypoint.sh
 RUN     chmod +x entrypoint.sh"""
 ENTRYPOINT = f"""#! {SHELL}
@@ -86,9 +90,9 @@ def pave_project(target_project_name):
     project_path = pathlib.Path(target_project_name)
     project_path.mkdir()
     _write_dockerfile()
-    project_path.joinpath("entrypoint.sh").write_text(ENTRYPOINT)
-    project_path.joinpath("run_containment.sh").write_text(RUNSCRIPT)
-    project_path.joinpath("packages.json").write_text("[]")
+    ENTRYPOINTFILE.write_text(ENTRYPOINT)
+    RUNFILE.write_text(RUNSCRIPT)
+    PROJPACKAGESFILE.write_text("[]")
 
 
 def pave_community():
@@ -122,8 +126,23 @@ def _assemble_dockerfile():
 
 def _assure_build():
     build_actions = []
-    for a in dbuildapi(PROJECT_PATH.as_posix()):
+    for a in dbuildapi(PROJECT_PATH.as_posix(), tag=TAG):
         build_actions.append(a)
+    
+
+def run():
+    """
+    Usage:
+      containment run
+    """
+    run_string = RUNFILE.read_text()
+    run_command = run_string.split()
+    chmod_string = "chmod +x " + RUNFILE.as_posix()
+    chmod_run = subprocess.run(chmod_string.split())
+    run_subprocess = subprocess.run(run_command,
+                                    stdin=sys.stdin,
+                                    stdout=sys.stdout,
+                                    stderr=sys.stderr)
     
 
 def activate():
@@ -134,4 +153,4 @@ def activate():
     # This is derived from the clone
     _assure_config() 
     _assure_build()
-    
+    run()
