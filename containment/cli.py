@@ -34,16 +34,16 @@ TAG = f"containment/{PROJECT_NAME}"
 DOCKERFILE = PROJECT_PATH.joinpath("Dockerfile")
 RUNFILE = PROJECT_PATH.joinpath("run_containment.sh")
 ENTRYPOINTFILE = PROJECT_PATH.joinpath("entrypoint.sh")
-PROJPACKAGESFILE = PROJECT_PATH.joinpath("packages.json")
+PACKAGESFILE = PROJECT_PATH.joinpath("packages.json")
+PROJPACKAGES = json.load(PACKAGESFILE.open())
 # CONFIGURATION STRING VARIABLE VALUES
 COMMUNITY_ROOTDIRNAME = COMMUNITY_ROOT_PATH.as_posix()
 USER = os.environ["USER"]
 SHELL = os.environ["SHELL"]
 USERID = subprocess.getoutput("id -u")
-GENERAL_PERSONAL_PACKAGES = ["vim", "tmux", "git"] # These are examples.
+GENERAL_PERSONAL_PACKAGES = {"apt-get install -y": ["vim", "tmux", "git"]} # These are examples.
 
 # CONFIGURATION STRINGS
-APT_PACKAGES = "RUN     apt-get install -y "+" ".join(GENERAL_PERSONAL_PACKAGES)
 PROJ_PLUGIN = \
 f"""RUN     useradd --uid 1000 --home /home/{USER} {USER}
 RUN     echo {USER} ALL=\(ALL\) NOPASSWD: ALL >> /etc/sudoers
@@ -69,6 +69,18 @@ RUN     apt-get update && apt-get -y install sudo"""
 client = docker.from_env()
 dbuildapi = client.api.build
 
+def _ingest_packages(package_manifest):
+    """
+    take in a dict return a string of docker build RUN directives
+    one RUN per package type
+    one package type per JSON key
+    """
+    out_string = ''
+    for k, v in package_manifest:
+        vstr = ' '.join(v)
+        out_string = out_string + f"RUN    {k} {vstr}\n"
+    print(out_string)
+
 def pave_profile():
     """
     Usage:
@@ -92,7 +104,7 @@ def pave_project(target_project_name):
     write_dockerfile()
     ENTRYPOINTFILE.write_text(ENTRYPOINT)
     RUNFILE.write_text(RUNSCRIPT)
-    PROJPACKAGESFILE.write_text("[]")
+    PACKAGESFILE.write_text("[]")
 
 
 def pave_community():
@@ -123,16 +135,33 @@ def write_dockerfile():
 def _assemble_dockerfile():
     BASELAYER = BASE.read_text()
     DOCKERTEXT = '\n'.join([BASELAYER,
-                            APT_PACKAGES,
+                            COMMUNITY_PACKAGES,
+                            PROFILE_PACKAGES,
+                            PROJECT_PACKAGES,
                             PROJ_PLUGIN])
     return DOCKERTEXT
         
 
-def _assure_build():
+def rebuild():
+    """
+    Usage:
+      containment rebuild
+    """
+    write_dockerfile()
+    build()
+
+
+def build():
+    """
+    Usage:
+      containment build
+    """
     build_actions = []
     for a in dbuildapi(PROJECT_PATH.as_posix(), tag=TAG):
+        print(a)
         build_actions.append(a)
     
+
 
 def run():
     """
@@ -156,5 +185,5 @@ def activate():
     """
     # This is derived from the clone
     _assure_config() 
-    _assure_build()
+    build()
     run()
