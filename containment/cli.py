@@ -89,7 +89,7 @@ def pave_project(target_project_name):
     """
     project_path = pathlib.Path(target_project_name)
     project_path.mkdir()
-    _write_dockerfile()
+    write_dockerfile()
     ENTRYPOINTFILE.write_text(ENTRYPOINT)
     RUNFILE.write_text(RUNSCRIPT)
     PROJPACKAGESFILE.write_text("[]")
@@ -112,7 +112,11 @@ def _assure_config():
     if not PROJECT_PATH.is_dir():
         pave_project(PROJECT_PATH.as_posix())
 
-def _write_dockerfile():
+def write_dockerfile():
+    """
+    Usage:
+      containment write_dockerfile  
+    """
     docker_text = _assemble_dockerfile()
     DOCKERFILE.write_text(docker_text)
 
