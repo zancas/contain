@@ -22,6 +22,7 @@ COMMUNITY_ROOT_PATH = pathlib.Path(os.getcwd())
 PROJECT_NAME = COMMUNITY_ROOT_PATH.name
 COMMUNITY = COMMUNITY_ROOT_PATH.joinpath(".containment")
 BASE = COMMUNITY.joinpath("base")
+COMMUNITY_PACKAGES = COMMUNITY.joinpath("packages.json")
 
 # PROFILE ACQUISITION
 HOME = os.environ["HOME"]
@@ -35,13 +36,13 @@ DOCKERFILE = PROJECT.joinpath("Dockerfile")
 RUNFILE = PROJECT.joinpath("run_containment.sh")
 ENTRYPOINTFILE = PROJECT.joinpath("entrypoint.sh")
 PACKAGESFILE = PROJECT.joinpath("packages.json")
-PROJPACKAGES = json.load(PACKAGESFILE.open())
+#PROJPACKAGES = json.load(PACKAGESFILE.open())
 # CONFIGURATION STRING VARIABLE VALUES
 COMMUNITY_ROOTDIRNAME = COMMUNITY_ROOT_PATH.absolute().as_posix()
 USER = os.environ["USER"]
 SHELL = os.environ["SHELL"]
 USERID = subprocess.getoutput("id -u")
-GENERAL_PERSONAL_PACKAGES = {"apt-get install -y": ["vim", "tmux", "git"]} # These are examples.
+GENERAL_PERSONAL_PACKAGES = ["vim", "tmux", "git"] # These are examples.
 
 # CONFIGURATION STRINGS
 PROJ_PLUGIN = \
@@ -69,11 +70,11 @@ RUN     apt-get update && apt-get -y install sudo"""
 client = docker.from_env()
 dbuildapi = client.api.build
 
-OS_PACKAGE_MANAGERS = {"debian": "apt-get install -y",
-                       "ubuntu": "apt-get install -y"}
+PKG_INSTALL_CMDS = {"debian": "apt-get install -y",
+                    "ubuntu": "apt-get install -y"}
 
 
-def _ingest_packages(package_file):
+def _generate_RUN_install_CMDS(package_file):
     """
     take in a dict return a string of docker build RUN directives
     one RUN per package type
@@ -119,6 +120,7 @@ def pave_community():
     Usage:
       containment pave_community
     """
+    print("pave_community is executing!!")
     COMMUNITY.mkdir()
     BASE.write_text(BASETEXT)
 
@@ -143,9 +145,9 @@ def write_dockerfile():
 
 def _assemble_dockerfile():
     BASE_LAYER = BASE.read_text()
-    COMMUNITY_LAYER = _ingest_packages(COMMUNITY.joinpath("packages.json")) 
-    PROFILE_LAYER = _ingest_packages(PROFILE.joinpath("packages.json")) 
-    PROJECT_LAYER = _ingest_packages(PROJECT.joinpath("packages.json")) 
+    COMMUNITY_LAYER = _generate_RUN_install_CMDS(COMMUNITY.joinpath("packages.json")) 
+    PROFILE_LAYER = _generate_RUN_install_CMDS(PROFILE.joinpath("packages.json")) 
+    PROJECT_LAYER = _generate_RUN_install_CMDS(PROJECT.joinpath("packages.json")) 
     DOCKERTEXT = '\n'.join([BASE_LAYER,
                             COMMUNITY_LAYER,
                             PROFILE_LAYER,
