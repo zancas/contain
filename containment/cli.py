@@ -43,11 +43,12 @@ COMMUNITY_ROOTDIRNAME = COMMUNITY_ROOT_PATH.absolute().as_posix()
 USER = os.environ["USER"]
 SHELL = os.environ["SHELL"]
 USERID = subprocess.getoutput("id -u")
+DOCKERGID = subprocess.getoutput("grep docker /etc/group").split(':')[2]
 GENERAL_PERSONAL_PACKAGES = ["vim", "tmux", "git"] # These are examples.
 
 # CONFIGURATION STRINGS
 PROJ_PLUGIN = \
-f"""RUN     useradd --uid 1000 --home /home/{USER} {USER}
+f"""RUN     useradd -G docker --uid 1000 --home /home/{USER} {USER}
 RUN     echo {USER} ALL=\(ALL\) NOPASSWD: ALL >> /etc/sudoers
 COPY    ./entrypoint.sh entrypoint.sh
 RUN     chmod +x entrypoint.sh"""
@@ -56,15 +57,16 @@ cd {COMMUNITY_ROOTDIRNAME}
 exec {SHELL}"""
 RUNSCRIPT = \
 f"""docker run -it \
+               -v /var/run/docker.sock:/var/run/docker.sock \
                -v {HOME}:{HOME} \
                -v {COMMUNITY_ROOTDIRNAME}:{COMMUNITY_ROOTDIRNAME} \
-               --entrypoint=/entrypoint.sh -u {USER} {TAG}:latest"""
+               --entrypoint=/entrypoint.sh -u {USER}:{DOCKERGID} {TAG}:latest"""
 
 
 EXTERNALBASIS = ("ubuntu@sha256:9ee3b83bcaa383e5e3b657f042f4034c92cdd50c03f731"
                  "66c145c9ceaea9ba7c")
 BASETEXT = f"""FROM    {EXTERNALBASIS}
-RUN     apt-get update && apt-get install -y sudo"""
+RUN     apt-get update && apt-get install -y sudo docker.io"""
 
 # docker config
 
