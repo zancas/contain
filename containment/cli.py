@@ -35,8 +35,9 @@ TAG = f"containment/{PROJECT_NAME}"
 DOCKERFILE = PROJECT.joinpath("Dockerfile")
 RUNFILE = PROJECT.joinpath("run_containment.sh")
 ENTRYPOINTFILE = PROJECT.joinpath("entrypoint.sh")
-PACKAGESFILE = PROJECT.joinpath("packages.json")
+PROJECTPACKAGES = PROJECT.joinpath("packages.json")
 #PROJPACKAGES = json.load(PACKAGESFILE.open())
+
 # CONFIGURATION STRING VARIABLE VALUES
 COMMUNITY_ROOTDIRNAME = COMMUNITY_ROOT_PATH.absolute().as_posix()
 USER = os.environ["USER"]
@@ -63,7 +64,7 @@ f"""docker run -it \
 EXTERNALBASIS = ("ubuntu@sha256:9ee3b83bcaa383e5e3b657f042f4034c92cdd50c03f731"
                  "66c145c9ceaea9ba7c")
 BASETEXT = f"""FROM    {EXTERNALBASIS}
-RUN     apt-get update && apt-get -y install sudo"""
+RUN     apt-get update && apt-get install -y sudo"""
 
 # docker config
 
@@ -74,19 +75,20 @@ PKG_INSTALL_CMDS = {"debian": "apt-get install -y",
                     "ubuntu": "apt-get install -y"}
 
 
-def _generate_RUN_install_CMDS(package_file):
+def _generate_RUN_install_commands(package_file):
     """
     take in a dict return a string of docker build RUN directives
     one RUN per package type
     one package type per JSON key
     """
-    contents = json.load(package_file.open())
-    out_string = ''
-    for k, v in contents:
-        vstr = ' '.join(v)
-        out_string = out_string + f"RUN    {k} {vstr}\n"
-    print(out_string)
-    return out_string
+    packages = ' '.join(json.load(package_file.open()))
+    if packages:
+        for packager in PKG_INSTALL_CMDS:
+            if packager in EXTERNALBASIS:
+                installer = PKG_INSTALL_CMDS[packager]
+        return f'RUN    {installer} {packages}'
+    else:
+        return ''
 
 
 def pave_profile():
@@ -107,12 +109,14 @@ def pave_project(target_project_name):
     Usage:
       containment pave_project <target_project_name>
     """
+    print("Inside pave_project")
     project_path = pathlib.Path(target_project_name)
     project_path.mkdir()
-    write_dockerfile()
     ENTRYPOINTFILE.write_text(ENTRYPOINT)
     RUNFILE.write_text(RUNSCRIPT)
-    PACKAGESFILE.write_text("[]")
+    print("about to write to ", PROJECTPACKAGES.absolute().as_posix())
+    PROJECTPACKAGES.write_text("[]")
+    write_dockerfile()
 
 
 def pave_community():
@@ -123,6 +127,7 @@ def pave_community():
     print("pave_community is executing!!")
     COMMUNITY.mkdir()
     BASE.write_text(BASETEXT)
+    COMMUNITY_PACKAGES.write_text("[]")
 
 
 def _assure_config():
@@ -145,9 +150,12 @@ def write_dockerfile():
 
 def _assemble_dockerfile():
     BASE_LAYER = BASE.read_text()
-    COMMUNITY_LAYER = _generate_RUN_install_CMDS(COMMUNITY.joinpath("packages.json")) 
-    PROFILE_LAYER = _generate_RUN_install_CMDS(PROFILE.joinpath("packages.json")) 
-    PROJECT_LAYER = _generate_RUN_install_CMDS(PROJECT.joinpath("packages.json")) 
+    COMMUNITY_LAYER = \
+        _generate_RUN_install_commands(COMMUNITY.joinpath("packages.json")) 
+    PROFILE_LAYER = \
+        _generate_RUN_install_commands(PROFILE.joinpath("packages.json")) 
+    PROJECT_LAYER = \
+        _generate_RUN_install_commands(PROJECT.joinpath("packages.json")) 
     DOCKERTEXT = '\n'.join([BASE_LAYER,
                             COMMUNITY_LAYER,
                             PROFILE_LAYER,
