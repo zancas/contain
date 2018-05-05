@@ -36,6 +36,7 @@ DOCKERFILE = PROJECT.joinpath("Dockerfile")
 RUNFILE = PROJECT.joinpath("run_containment.sh")
 ENTRYPOINTFILE = PROJECT.joinpath("entrypoint.sh")
 PROJECT_OS_PACKAGES = PROJECT.joinpath("os_packages.json")
+PROJECT_LANG_PACKAGES = PROJECT.joinpath("lang_packages.json")
 
 # CONFIGURATION STRING VARIABLE VALUES
 COMMUNITY_ROOTDIRNAME = COMMUNITY_ROOT_PATH.absolute().as_posix()
@@ -73,11 +74,13 @@ RUN     apt-get update && apt-get install -y sudo docker.io"""
 client = docker.from_env()
 dbuildapi = client.api.build
 
-PKG_INSTALL_CMDS = {"debian": "apt-get install -y",
-                    "ubuntu": "apt-get install -y"}
+PKG_INSTALL_CMDS = {"debian":   "apt-get install -y",
+                    "ubuntu":   "apt-get install -y",
+                    "python3":  "`which pip3` install",
+                    "python":   "`which pip` install"}
 
 
-def _generate_RUN_install_commands(package_file):
+def _generate_OS_package_install_cmds(package_file):
     """
     take in a dict return a string of docker build RUN directives
     one RUN per package type
@@ -93,6 +96,23 @@ def _generate_RUN_install_commands(package_file):
         return ''
 
 
+def _generate_LANG_package_install_cmds(package_file):
+    """
+    """
+    packages_dict = json.load(package_file.open())
+    install_command = ''
+    if packages_dict:
+        for lang in packages_dict:
+            if lang in PKG_INSTALL_CMDS:
+                packages = ' '.join(packages_dict[lang])
+                installer = PKG_INSTALL_CMDS[lang]
+                install_command =\
+                    install_command + f'RUN    {installer} {packages}\n'
+        return install_command
+    else:
+        return ''
+
+
 def pave_profile():
     """
     Usage:
@@ -102,6 +122,10 @@ def pave_profile():
     json.dump(
         PROFILE_OS_PACKAGES,
         PROFILE.joinpath("os_packages.json").open(mode='w')
+    )
+    json.dump(
+        {},
+        PROFILE.joinpath("lang_packages.json").open(mode='w')
     )
     PROJECTS_PATH.mkdir()
 
@@ -117,6 +141,7 @@ def pave_project():
     RUNFILE.write_text(RUNSCRIPT)
     print("about to write to ", PROJECT_OS_PACKAGES.absolute().as_posix())
     PROJECT_OS_PACKAGES.write_text("[]")
+    PROJECT_LANG_PACKAGES.write_text("{}")
     write_dockerfile()
 
 
@@ -151,16 +176,25 @@ def write_dockerfile():
 
 def _assemble_dockerfile():
     BASE_LAYER = BASE.read_text()
-    COMMUNITY_LAYER = \
-        _generate_RUN_install_commands(COMMUNITY.joinpath("os_packages.json")) 
-    PROFILE_LAYER = \
-        _generate_RUN_install_commands(PROFILE.joinpath("os_packages.json")) 
-    PROJECT_LAYER = \
-        _generate_RUN_install_commands(PROJECT.joinpath("os_packages.json")) 
+    COMMUNITY_OS_LAYER = _generate_OS_package_install_cmds(
+        COMMUNITY.joinpath("os_packages.json")) 
+    PROFILE_OS_LAYER = _generate_OS_package_install_cmds(
+        PROFILE.joinpath("os_packages.json")) 
+    PROJECT_OS_LAYER = _generate_OS_package_install_cmds(
+        PROJECT.joinpath("os_packages.json")) 
+    COMMUNITY_LANG_LAYER = _generate_LANG_package_install_cmds(
+        COMMUNITY.joinpath("lang_packages.json")) 
+    PROFILE_LANG_LAYER = _generate_LANG_package_install_cmds(
+        PROFILE.joinpath("lang_packages.json")) 
+    PROJECT_LANG_LAYER = _generate_LANG_package_install_cmds(
+        PROJECT.joinpath("lang_packages.json")) 
     DOCKERTEXT = '\n'.join([BASE_LAYER,
-                            COMMUNITY_LAYER,
-                            PROFILE_LAYER,
-                            PROJECT_LAYER,
+                            COMMUNITY_OS_LAYER,
+                            PROFILE_OS_LAYER,
+                            PROJECT_OS_LAYER,
+                            COMMUNITY_LANG_LAYER,
+                            PROFILE_LANG_LAYER,
+                            PROJECT_LANG_LAYER,
                             PROJ_PLUGIN])
     return DOCKERTEXT
         
