@@ -64,8 +64,8 @@ f"""docker run -it \
                --entrypoint=/entrypoint.sh -u {USER}:{DOCKERGID} {TAG}:latest"""
 
 
-EXTERNALBASIS = ("ubuntu@sha256:9ee3b83bcaa383e5e3b657f042f4034c92cdd50c03f731"
-                 "66c145c9ceaea9ba7c")
+EXTERNALBASIS = ("ubuntu@sha256:c8c275751219dadad8fa56b3ac41ca6cb22219ff117ca9"
+                 "8fe82b42f24e1ba64e")
 BASETEXT = f"""FROM    {EXTERNALBASIS}
 RUN     apt-get update && apt-get install -y sudo docker.io"""
 
@@ -114,7 +114,6 @@ def pave_project():
     """
     print("Inside pave_project")
     PROJECT.mkdir()
-    DOCKERFILES.mkdir()
     ENTRYPOINTFILE.write_text(ENTRYPOINT)
     RUNFILE.write_text(RUNSCRIPT)
     print("about to write to ", PROJECTPACKAGES.absolute().as_posix())
@@ -200,5 +199,6 @@ def activate():
     """
     # This is derived from the clone
     _assure_config() 
+    write_dockerfile()
     build()
     run()
