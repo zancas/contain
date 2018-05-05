@@ -48,12 +48,13 @@ GENERAL_PERSONAL_PACKAGES = ["vim", "tmux", "git"] # These are examples.
 
 # CONFIGURATION STRINGS
 PROJ_PLUGIN = \
-f"""RUN     useradd -G docker --uid 1000 --home /home/{USER} {USER}
+f"""RUN     useradd -G docker --uid {USERID} --home /home/{USER} {USER}
 RUN     echo {USER} ALL=\(ALL\) NOPASSWD: ALL >> /etc/sudoers
 COPY    ./entrypoint.sh entrypoint.sh
 RUN     chmod +x entrypoint.sh"""
 ENTRYPOINT = f"""#! {SHELL}
 cd {COMMUNITY_ROOTDIRNAME}
+sudo sed -ie s/docker:x:[0-9]*:{USER}/docker:x:{DOCKERGID}:{USER}/g /etc/group
 exec {SHELL}"""
 RUNSCRIPT = \
 f"""docker run -it \
@@ -106,14 +107,14 @@ def pave_profile():
     PROJECTS_PATH.mkdir()
 
 
-def pave_project(target_project_name):
+def pave_project():
     """
     Usage:
-      containment pave_project <target_project_name>
+      containment pave_project
     """
     print("Inside pave_project")
-    project_path = pathlib.Path(target_project_name)
-    project_path.mkdir()
+    PROJECT.mkdir()
+    DOCKERFILES.mkdir()
     ENTRYPOINTFILE.write_text(ENTRYPOINT)
     RUNFILE.write_text(RUNSCRIPT)
     print("about to write to ", PROJECTPACKAGES.absolute().as_posix())
@@ -138,7 +139,7 @@ def _assure_config():
     if not PROFILE.is_dir():
         pave_profile()
     if not PROJECT.is_dir():
-        pave_project(PROJECT.absolute().as_posix())
+        pave_project()
 
 
 def write_dockerfile():
@@ -165,15 +166,6 @@ def _assemble_dockerfile():
                             PROJ_PLUGIN])
     return DOCKERTEXT
         
-
-def rebuild():
-    """
-    Usage:
-      containment rebuild
-    """
-    write_dockerfile()
-    build()
-
 
 def build():
     """
