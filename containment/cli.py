@@ -22,7 +22,7 @@ COMMUNITY_ROOT_PATH = pathlib.Path(os.getcwd())
 PROJECT_NAME = COMMUNITY_ROOT_PATH.name
 COMMUNITY = COMMUNITY_ROOT_PATH.joinpath(".containment")
 BASE = COMMUNITY.joinpath("base")
-COMMUNITY_PACKAGES = COMMUNITY.joinpath("packages.json")
+COMMUNITY_OS_PACKAGES = COMMUNITY.joinpath("os_packages.json")
 
 # PROFILE ACQUISITION
 HOME = os.environ["HOME"]
@@ -35,8 +35,7 @@ TAG = f"containment/{PROJECT_NAME}"
 DOCKERFILE = PROJECT.joinpath("Dockerfile")
 RUNFILE = PROJECT.joinpath("run_containment.sh")
 ENTRYPOINTFILE = PROJECT.joinpath("entrypoint.sh")
-PROJECTPACKAGES = PROJECT.joinpath("packages.json")
-#PROJPACKAGES = json.load(PACKAGESFILE.open())
+PROJECT_OS_PACKAGES = PROJECT.joinpath("os_packages.json")
 
 # CONFIGURATION STRING VARIABLE VALUES
 COMMUNITY_ROOTDIRNAME = COMMUNITY_ROOT_PATH.absolute().as_posix()
@@ -44,7 +43,7 @@ USER = os.environ["USER"]
 SHELL = os.environ["SHELL"]
 USERID = subprocess.getoutput("id -u")
 DOCKERGID = subprocess.getoutput("grep docker /etc/group").split(':')[2]
-GENERAL_PERSONAL_PACKAGES = ["vim", "tmux", "git"] # These are examples.
+PROFILE_OS_PACKAGES = ["vim", "tmux", "git"] # These are examples.
 
 # CONFIGURATION STRINGS
 PROJ_PLUGIN = \
@@ -101,8 +100,8 @@ def pave_profile():
     """
     PROFILE.mkdir()
     json.dump(
-        GENERAL_PERSONAL_PACKAGES,
-        PROFILE.joinpath("packages.json").open(mode='w')
+        PROFILE_OS_PACKAGES,
+        PROFILE.joinpath("os_packages.json").open(mode='w')
     )
     PROJECTS_PATH.mkdir()
 
@@ -116,8 +115,8 @@ def pave_project():
     PROJECT.mkdir()
     ENTRYPOINTFILE.write_text(ENTRYPOINT)
     RUNFILE.write_text(RUNSCRIPT)
-    print("about to write to ", PROJECTPACKAGES.absolute().as_posix())
-    PROJECTPACKAGES.write_text("[]")
+    print("about to write to ", PROJECT_OS_PACKAGES.absolute().as_posix())
+    PROJECT_OS_PACKAGES.write_text("[]")
     write_dockerfile()
 
 
@@ -129,7 +128,7 @@ def pave_community():
     print("pave_community is executing!!")
     COMMUNITY.mkdir()
     BASE.write_text(BASETEXT)
-    COMMUNITY_PACKAGES.write_text("[]")
+    COMMUNITY_OS_PACKAGES.write_text("[]")
 
 
 def _assure_config():
@@ -153,11 +152,11 @@ def write_dockerfile():
 def _assemble_dockerfile():
     BASE_LAYER = BASE.read_text()
     COMMUNITY_LAYER = \
-        _generate_RUN_install_commands(COMMUNITY.joinpath("packages.json")) 
+        _generate_RUN_install_commands(COMMUNITY.joinpath("os_packages.json")) 
     PROFILE_LAYER = \
-        _generate_RUN_install_commands(PROFILE.joinpath("packages.json")) 
+        _generate_RUN_install_commands(PROFILE.joinpath("os_packages.json")) 
     PROJECT_LAYER = \
-        _generate_RUN_install_commands(PROJECT.joinpath("packages.json")) 
+        _generate_RUN_install_commands(PROJECT.joinpath("os_packages.json")) 
     DOCKERTEXT = '\n'.join([BASE_LAYER,
                             COMMUNITY_LAYER,
                             PROFILE_LAYER,
