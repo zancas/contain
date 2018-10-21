@@ -8,7 +8,6 @@ from typing import List
 from typet import Bounded
 from typet import Object
 from typet import singleton
-
 from .exceptions import DockerGroupMissing
 from .types.environment import EnvironmentVariable
 

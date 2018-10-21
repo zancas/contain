@@ -16,8 +16,8 @@ class Context:
             "grep docker /etc/group"
         ).split(":")[2]
         # CONFIGURATION STRINGS
-        self.project_adapter = f"""RUN     useradd -G docker --uid {settings.uid} --home /home/{settings.user} {settings.user}
-        RUN     echo {settings.user} ALL=\(ALL\) NOPASSWD: ALL >> /etc/sudoers
+        self.project_adapter = rf"""RUN     useradd -G docker --uid {settings.uid} --home /home/{settings.user} {settings.user}
+        RUN     echo {settings.user} ALL=(ALL) NOPASSWD: ALL >> /etc/sudoers
         COPY    ./entrypoint.sh entrypoint.sh
         RUN     chmod +x entrypoint.sh"""
         self.entrypoint_text = f"""#!{settings.shell}
@@ -132,6 +132,9 @@ class CommandLineInterface:
         settings.project_config.base.write_text(self.context.base_text)
         settings.project_config.os_packages.write_text("[]")
         settings.project_config.lang_packages.write_text("{}")
+        settings.project_config.base.write_text(self.context.Docker_text)
+        settings.project_config.base.write_text(self.context.entry_text)
+        settings.project_config.base.write_text(self.context.runner_text)
 
     def ensure_config(self):
         if not settings.project_config.path.is_dir():
@@ -171,6 +174,7 @@ class CommandLineInterface:
         Usage:
           containment build
         """
+        print("We have entered the build method!")
         docker_build = docker.from_env().api.build
         build_actions = []
         for a in docker_build(
