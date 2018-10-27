@@ -7,45 +7,23 @@ from ..builder import CommandLineInterface
 from ..cli.activate import activate as actfun
 from ..cli import activate
 
+mockattributes = ("ensure_config", "write_dockerfile", "build", "run")
 
 
-operations = ("ensure_config",
-              "write_dockerfile",
-              "build",
-              "run")
+def set_of_cli_operations(mockattributes):
+    print("The number of steps is: ", steps)
+    def actual_decorator(cli_cls):
+        print("Did this get evaluated?")
+        return cli_cls
+
+    return actual_decorator
+
+@set_number_of_cli_operations(15)
+class CommandLineInterfaceWrapper:
+    pass
 
 
-class InitialStepFactory(type):
-
-    def __new__(mcls, name, bases, namespace, **kwds):
-        ccli = type.__new__(mcls, name, bases, namespace, **kwds)
-        print("ccli is: ", ccli)
-        print("Inside metaclass __new__!")
-        print("mcls is: ", mcls)
-        print("name is: ", name)
-        print("bases are: ", bases)
-        print("namespace is: ", namespace)
-        print("dir(ccli): ", dir(ccli))
-        print("kwds: ", kwds)
-        return ccli
-    
-
-class NInitialSteps(CommandLineInterface, metaclass=InitialStepFactory):
-    def __init__(self, A=1):
-        print("NInitialSteps.__init__")
-"""class PrimeMover(CommandLineInterface):
-    def __new__(
-    def __init__(self, numsteps):
-        
-        super(PrimeMover, self).__init__()
-
-    def 
-"""
-
-    
 def test_unitest_patch():
-    print(dir(NInitialSteps()))
-    print("Type expt: ")
     
     with mock.patch('containment.cli.activate.CommandLineInterface',
                     auto_spec=True) as CLIO:   
