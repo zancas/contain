@@ -11,7 +11,7 @@ mockattributes = ("ensure_config", "write_dockerfile", "build", "run")
 
 
 def set_of_cli_operations(mockattributes):
-    print("The number of steps is: ", steps)
+    print("The attributes to mock are: ", mockattributes)
     def actual_decorator(cli_cls):
         print("Did this get evaluated?")
         return cli_cls
