@@ -10,26 +10,41 @@ from ..cli import activate
 mockattributes = ("ensure_config", "write_dockerfile", "build", "run")
 
 
-def set_of_cli_operations(mockattributes):
-    print("The attributes to mock are: ", mockattributes)
+def apply_operations(stop_index):
     def actual_decorator(cli_cls):
-        print("Did this get evaluated?")
+        raw_klass = cli_cls.__bases__[0]
+        print("stop_index is: ", stop_index)
+        for stub in mockattributes[stop_index:]:
+            print(stub)
+            setattr(raw_klass, stub, mock.MagicMock(name=stub))
+        print(type(raw_klass.run))
+        print(type(raw_klass.ensure_config))
+        print()
         return cli_cls
 
     return actual_decorator
 
-@set_number_of_cli_operations(15)
-class CommandLineInterfaceWrapper:
-    pass
+@apply_operations(1)
+class EnsureConfigOnly(CommandLineInterface): pass
 
+@apply_operations(2)
+class FirstTwo(CommandLineInterface): pass
+
+@apply_operations(3)
+class FirstThree(CommandLineInterface): pass
 
 def test_unitest_patch():
     
+    print(EnsureConfigOnly)
     with mock.patch('containment.cli.activate.CommandLineInterface',
-                    auto_spec=True) as CLIO:   
+                    new=EnsureConfigOnly) as CLIO:   
+        print(EnsureConfigOnly)
         c = CLIO()
         print(c)
-        print(c.ensure_config())
+        print(c.ensure_config)
+        print(c.write_dockerfile)
+        print(c.build)
+        print(c.run)
 
 @pytest.fixture
 def initialoperations():
