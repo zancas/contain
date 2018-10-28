@@ -29,7 +29,8 @@ class FirstTwo(CommandLineInterface): pass
 @apply_operations(3)
 class FirstThree(CommandLineInterface): pass
 
-def test_ensure_config():
+def test_ensure_config(tmpdir):
+    print(tmpdir)
     print(EnsureConfigOnly)
     with mock.patch('containment.cli.activate.CommandLineInterface',
                     new=EnsureConfigOnly) as CLIO:   
@@ -58,20 +59,6 @@ def test_construction(initialoperations, monkeypatch):
     with monkeypatch.context() as c:
         monkeypatch.setattr("..builder.CommandLineInterface",
                             initialoperations(3))
-        actfun()
-
-
-def test_ensure_config(monkeypatch):
-    """Test activation under ideal conditions."""
-    def initialoperations():
-        newcli = CommandLineInterface()
-        newcli.write_dockerfile = lambda: print("write_dockerfile")
-        newcli.build = lambda: print("build")
-        newcli.run = lambda: print("run")
-        return newcli
-
-    with monkeypatch.context() as m:
-        m.setattr(activate, "CommandLineInterface", initialoperations)
         actfun()
 
 
