@@ -7,24 +7,21 @@ import sys
 
 import docker
 
-from .config import settings
+from .config import config
 
 
 class Context:
     def __init__(self):
-        settings.docker_gid = subprocess.getoutput(
-            "grep docker /etc/group"
-        ).split(":")[2]
         # CONFIGURATION STRINGS
-        self.project_adapter = rf"""RUN     useradd -G docker --uid {settings.uid} --home /home/{settings.user} {settings.user}
-        RUN     echo {settings.user} ALL=(ALL) NOPASSWD: ALL >> /etc/sudoers
+        self.project_adapter = rf"""RUN     useradd -G docker --uid {config.uid} --home /home/{config.user} {config.user}
+        RUN     echo {config.user} ALL=(ALL) NOPASSWD: ALL >> /etc/sudoers
         COPY    ./entrypoint.sh entrypoint.sh
         RUN     chmod +x entrypoint.sh"""
-        self.entrypoint_text = f"""#!{settings.shell}
-        cd {settings.project_config.path}
-        sudo sed -ie 's/docker:x:[0-9]*:{settings.user}/docker:x:{settings.docker_gid}:{settings.user}/g' /etc/group
-        sudo usermod -s {settings.shell} {settings.user}
-        exec {settings.shell}"""
+        self.entrypoint_text = f"""#!{config.shell}
+        cd {config.project_config.path}
+        sudo sed -ie 's/docker:x:[0-9]*:{config.user}/docker:x:{config.docker_gid}:{config.user}/g' /etc/group
+        sudo usermod -s {config.shell} {config.user}
+        exec {config.shell}"""
         try:
             ssh_auth_sock = os.environ["SSH_AUTH_SOCK"]
         except KeyError:
@@ -35,26 +32,26 @@ class Context:
             ).parent.as_posix()
             self.run_text = f"""docker run -it \
                            -v /var/run/docker.sock:/var/run/docker.sock \
-                           -v {settings.home}:{settings.home} \
-                           -v {settings.project_config.path}:{settings.project_config.path} \
+                           -v {config.home}:{config.home} \
+                           -v {config.project_config.path}:{config.project_config.path} \
                            -v {ssh_auth_sock_parent} \
                            -e SSH_AUTH_SOCK={ssh_auth_sock} \
-                           --entrypoint=/entrypoint.sh -u {settings.user}:{settings.docker_gid} {settings.tag}:latest"""
+                           --entrypoint=/entrypoint.sh -u {config.user}:{config.docker_gid} {config.tag}:latest"""
         else:
             self.run_text = f"""docker run -it \
                            -v /var/run/docker.sock:/var/run/docker.sock \
-                           -v {settings.home}:{settings.home} \
-                           -v {settings.project_config.path}:{settings.project_config.path} \
-                           --entrypoint=/entrypoint.sh -u {settings.user}:{settings.docker_gid} {settings.tag}:latest"""
+                           -v {config.home}:{config.home} \
+                           -v {config.project_config.path}:{config.project_config.path} \
+                           --entrypoint=/entrypoint.sh -u {config.user}:{config.docker_gid} {config.tag}:latest"""
 
         self.externalbasis = "ubuntu"
         self.base_text = f"""FROM    {self.externalbasis}
         RUN     apt update && apt install -y sudo docker.io"""
 
+context = Context()
 
 class CommandLineInterface:
     def __init__(self):
-        self.context = Context()
         self.pkg_install_cmds = {
             "debian": "apt install -y",
             "ubuntu": "apt install -y",
@@ -71,7 +68,7 @@ class CommandLineInterface:
         packages = " ".join(json.load(package_file.open()))
         if packages:
             for packager in self.pkg_install_cmds:
-                if packager in self.context.externalbasis:
+                if packager in context.externalbasis:
                     installer = self.pkg_install_cmds[packager]
             return f"RUN    {installer} {packages}"
         else:
@@ -99,28 +96,28 @@ class CommandLineInterface:
         Usage:
           containment pave_profile
         """
-        settings.personal_config.path.mkdir()
+        config.personal_config.path.mkdir()
         json.dump(
-            settings.personal_config.package_list,
-            settings.personal_config.os_packages.open(mode="w"),
+            config.personal_config.package_list,
+            config.personal_config.os_packages.open(mode="w"),
         )
-        json.dump({}, settings.personal_config.lang_packages.open(mode="w"))
-        settings.personal_config.projects.mkdir()
+        json.dump({}, config.personal_config.lang_packages.open(mode="w"))
+        config.personal_config.projects.mkdir()
 
     def pave_project(self):
         """
         Usage:
           containment pave_project
         """
-        settings.project_customization.path.mkdir()
-        settings.project_customization.entrypoint.write_text(
-            self.context.entrypoint_text
+        config.project_customization.path.mkdir()
+        config.project_customization.entrypoint.write_text(
+            context.entrypoint_text
         )
-        settings.project_customization.runfile.write_text(
-            self.context.run_text
+        config.project_customization.runfile.write_text(
+            context.run_text
         )
-        settings.project_customization.os_packages.write_text("[]")
-        settings.project_customization.lang_packages.write_text("{}")
+        config.project_customization.os_packages.write_text("[]")
+        config.project_customization.lang_packages.write_text("{}")
         self.write_dockerfile()
 
     def pave_community(self):
@@ -128,20 +125,20 @@ class CommandLineInterface:
         Usage:
           containment pave_community
         """
-        settings.project_config.path.mkdir()
-        settings.project_config.base.write_text(self.context.base_text)
-        settings.project_config.os_packages.write_text("[]")
-        settings.project_config.lang_packages.write_text("{}")
-        settings.project_config.base.write_text(self.context.Docker_text)
-        settings.project_config.base.write_text(self.context.entry_text)
-        settings.project_config.base.write_text(self.context.runner_text)
+        config.project_config.path.mkdir()
+        config.project_config.dockerfile.write_text(context.base_text)
+        config.project_config.os_packages.write_text("[]")
+        config.project_config.lang_packages.write_text("{}")
+        config.project_config.dockerfile.write_text(context.base_text)
+        config.project_config.dockerfile.write_text(context.entrypoint_text)
+        config.project_config.dockerfile.write_text(context.run_text)
 
     def ensure_config(self):
-        if not settings.project_config.path.is_dir():
+        if not config.project_config.path.is_dir():
             self.pave_community()
-        if not settings.personal_config.path.is_dir():
+        if not config.personal_config.path.is_dir():
             self.pave_profile()
-        if not settings.project_customization.path.is_dir():
+        if not config.project_customization.path.is_dir():
             self.pave_project()
 
     def write_dockerfile(self):
@@ -149,23 +146,23 @@ class CommandLineInterface:
         Usage:
           containment write_dockerfile
         """
-        settings.project_customization.dockerfile.write_text(
+        config.project_customization.dockerfile.write_text(
             self._assemble_dockerfile()
         )
 
     def _assemble_dockerfile(self):
         return "\n".join(
             [
-                settings.project_config.base.read_text(),
-                self._os_install(settings.project_config.os_packages),
-                self._os_install(settings.personal_config.os_packages),
-                self._os_install(settings.project_customization.os_packages),
-                self._lang_install(settings.project_config.lang_packages),
-                self._lang_install(settings.personal_config.lang_packages),
+                config.project_config.base.read_text(),
+                self._os_install(config.project_config.os_packages),
+                self._os_install(config.personal_config.os_packages),
+                self._os_install(config.project_customization.os_packages),
+                self._lang_install(config.project_config.lang_packages),
+                self._lang_install(config.personal_config.lang_packages),
                 self._lang_install(
-                    settings.project_customization.lang_packages
+                    config.project_customization.lang_packages
                 ),
-                self.context.project_adapter,
+                context.project_adapter,
             ]
         )
 
@@ -178,7 +175,7 @@ class CommandLineInterface:
         docker_build = docker.from_env().api.build
         build_actions = []
         for a in docker_build(
-            str(settings.project_customization.path), tag=settings.tag
+            str(config.project_customization.path), tag=config.tag
         ):
             build_actions.append(a)
 
@@ -188,11 +185,11 @@ class CommandLineInterface:
           containment run
         """
         run_command = (
-            settings.project_customization.runfile.read_text().split()
+            config.project_customization.runfile.read_text().split()
         )
         chmod_string = (
             "chmod +x "
-            + settings.project_customization.runfile.absolute().as_posix()
+            + config.project_customization.runfile.absolute().as_posix()
         )
         subprocess.run(chmod_string.split())
         subprocess.run(

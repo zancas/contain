@@ -27,7 +27,7 @@ def _get_docker_gid() -> Bounded[int, 0]:
 @singleton
 class _ProjectConfig(Object):
     path: Path = _PROJECT_ROOT / ".containment"
-    base: Path = path / "base"
+    dockerfile: Path = path / "Dockerfile"
     os_packages: Path = path / "os_packages.json"
     lang_packages: Path = path / "lang_packages.json"
 
@@ -65,4 +65,4 @@ class _Config(Object):
     project_customization: _ProjectCustomization = _ProjectCustomization()
 
 
-settings = _Config()
+config = _Config()
