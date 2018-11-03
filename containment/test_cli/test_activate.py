@@ -38,21 +38,6 @@ def test_ensure_config(tmpdir):
         c = CLIO()
         print(dir(c))
 
-@pytest.fixture
-def initialoperations():
-    def takesteps(number_steps):
-        """"""
-        newcli = CommandLineInterface()
-        for ordered_op in operations[number_steps:]:
-            print(ordered_op)
-            newcli.__setattr__(ordered_op, mock.sentinel) 
-        #print(dir(newcli))
-        print(type(newcli.run))
-        print(type(newcli.build))
-        return newcli
-
-    return takesteps
-
 
 def test_construction(initialoperations, monkeypatch):
     """Test activation under ideal conditions."""
