@@ -13,9 +13,9 @@ from ....config import config
 
 def test_pave_project(ensureconfig_mockcli, tmpdir):
     print(dir(config.project_config))
-    print(config.project_config.path)
-    config.project_config.path = Path(os.path.join(tmpdir, ".containment"))
-    print(config.project_config.path)
+    print(config.project_config.directory)
+    config.project_config.directory = Path(os.path.join(tmpdir, ".containment"))
+    print(config.project_config.directory)
     with mock.patch('containment.cli.activate.CommandLineInterface',
                     new=ensureconfig_mockcli) as CLIO,\
          mock.patch('containment.builder.config', new=config) as mconfig:

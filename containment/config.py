@@ -28,17 +28,17 @@ def _get_docker_gid() -> Bounded[int, 0]:
 class _ProjectConfig(Object):
     # The attribute path should be named 'directory'
     directory: Path = _PROJECT_ROOT / ".containment"
-    dockerfile: Path = path / "Dockerfile"
-    os_packages: Path = path / "os_packages.json"
-    lang_packages: Path = path / "lang_packages.json"
+    dockerfile: Path = directory / "Dockerfile"
+    os_packages: Path = directory / "os_packages.json"
+    lang_packages: Path = directory / "lang_packages.json"
 
 
 @singleton
 class _PersonalConfig(Object):
     directory: Path = _HOME / ".containment"
-    projects: Path = path / "projects"
-    os_packages: Path = path / "os_packages.json"
-    lang_packages: Path = path / "lang_packages.json"
+    projects: Path = directory / "projects"
+    os_packages: Path = directory / "os_packages.json"
+    lang_packages: Path = directory / "lang_packages.json"
     package_list: List[str] = ["docker", _SHELL.name]
 
 
@@ -46,17 +46,17 @@ class _PersonalConfig(Object):
 class _ProjectCustomization(Object):
     # The attribute path should be named 'directory'
     directory: Path = _HOME / ".containment" / "projects" / _PROJECT_ROOT.name
-    dockerfile: Path = path / "Dockerfile"
-    runfile: Path = path / "run_containment.sh"
-    entrypoint: Path = path / "entrypoint.sh"
-    os_packages: Path = path / "os_packages.json"
-    lang_packages: Path = path / "lang_packages.json"
+    dockerfile: Path = directory / "Dockerfile"
+    runfile: Path = directory / "run_containment.sh"
+    entrypoint: Path = directory / "entrypoint.sh"
+    os_packages: Path = directory / "os_packages.json"
+    lang_packages: Path = directory / "lang_packages.json"
 
 
 @singleton
 class _Config(Object):
     directory: Path = _PROJECT_ROOT.name
-    tag: str = f"containment/{name}"
+    tag: str = f"containment/{directory}"
     uid: int = os.getuid()
     user: str = os.path.basename(os.path.expanduser("~"))
     docker_gid: int = _get_docker_gid()
