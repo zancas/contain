@@ -47,3 +47,12 @@ def test_fixturization(ensureconfig_mockcli):
          mock.patch('containment.builder.context') as mcontext:
         print(CLIO.ensure_config)
         print(CLIO.write_dockerfile)
+        mconfig.project_config.path.is_dir.return_value = \
+            False
+        print(EnsureConfigOnly)
+        c = CLIO()
+        #print(dir(c))
+        c.ensure_config()
+        print((mcontext.method_calls))
+        print((mconfig.method_calls))
+        #print(dir(mcontext))
