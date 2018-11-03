@@ -40,3 +40,6 @@ def test_pave_community(tmpdir):
                 print((mcontext.method_calls))
                 print((mconfig.method_calls))
                 #print(dir(mcontext))
+
+def test_fixturization(ensureconfig_mockcli):
+    pass
