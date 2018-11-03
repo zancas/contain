@@ -1,10 +1,10 @@
 import inspect
+from unittest import mock
 
 import pytest
 
 from ....builder import CommandLineInterface
 
-mockattributes = ("ensure_config", "write_dockerfile", "build", "run")
 
 def apply_operations(stop_index):
     def actual_decorator(cli_cls):
@@ -19,3 +19,6 @@ def apply_operations(stop_index):
 @pytest.fixture
 def ensureconfig_mockcli():
     print("ensureconfig_mockcli")
+    for stub in ("write_dockerfile", "build", "run"):
+        setattr(CommandLineInterface, stub, mock.MagicMock(name=stub))
+    return CommandLineInterface

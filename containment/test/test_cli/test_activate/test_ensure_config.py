@@ -42,4 +42,8 @@ def test_pave_community(tmpdir):
                 #print(dir(mcontext))
 
 def test_fixturization(ensureconfig_mockcli):
-    pass
+    with mock.patch('containment.cli.activate.CommandLineInterface',
+                    new=ensureconfig_mockcli) as CLIO,\
+         mock.patch('containment.builder.context') as mcontext:
+        print(CLIO.ensure_config)
+        print(CLIO.write_dockerfile)
