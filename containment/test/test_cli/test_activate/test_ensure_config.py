@@ -31,6 +31,8 @@ def test_pave_community(tmpdir):
                     new=EnsureConfigOnly) as CLIO:
         with mock.patch('containment.builder.context') as mcontext:
             with mock.patch('containment.builder.config') as mconfig:
+                mconfig.project_config.path.is_dir.return_value = \
+                    False
                 print(EnsureConfigOnly)
                 c = CLIO()
                 #print(dir(c))
