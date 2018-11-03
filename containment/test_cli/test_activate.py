@@ -32,11 +32,13 @@ class FirstThree(CommandLineInterface): pass
 def test_ensure_config(tmpdir):
     print(tmpdir)
     print(EnsureConfigOnly)
+    
     with mock.patch('containment.cli.activate.CommandLineInterface',
-                    new=EnsureConfigOnly) as CLIO:   
-        print(EnsureConfigOnly)
-        c = CLIO()
-        print(dir(c))
+                    new=EnsureConfigOnly) as CLIO:
+        with mock.patch('containment.builder.context') as mcon:
+            print(EnsureConfigOnly)
+            c = CLIO()
+            print(dir(c))
 
 
 def test_construction(initialoperations, monkeypatch):
