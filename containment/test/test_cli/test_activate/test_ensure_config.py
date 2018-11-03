@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Activation tests for contain."""
+"""Activation tests for contain.
+
+These tests assume the project is a (direct) subdirectory of the user's HOME.
+"""
 import os
 from pathlib import Path
 import pytest
@@ -12,8 +15,8 @@ from ....config import config
 
 
 def test_pave_project(ensureconfig_mockcli, tmpdir):
-    mock_proj_root = os.path.join(tmpdir, "test_project_root")
     mock_home = os.path.join(tmpdir, "test_user_home")
+    mock_proj_root = os.path.join(tmpdir, "test_project_root")
     mock_shell = "/bin/bash"
     with mock.patch('containment.cli.activate.CommandLineInterface',
                     new=ensureconfig_mockcli) as CLIO,\

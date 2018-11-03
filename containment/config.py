@@ -12,9 +12,9 @@ from .exceptions import DockerGroupMissing
 from .types.environment import EnvironmentVariable
 
 
-_PROJECT_ROOT = Path(os.getcwd())
-_HOME = Path(os.path.expanduser("~"))
 _SHELL = Path(EnvironmentVariable("SHELL").value)
+_HOME = Path(os.path.expanduser("~"))
+_PROJECT_ROOT = Path(os.getcwd())
 
 
 def _get_docker_gid() -> Bounded[int, 0]:
