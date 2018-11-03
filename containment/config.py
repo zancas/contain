@@ -26,7 +26,8 @@ def _get_docker_gid() -> Bounded[int, 0]:
 
 @singleton
 class _ProjectConfig(Object):
-    path: Path = _PROJECT_ROOT / ".containment"
+    # The attribute path should be named 'directory'
+    directory: Path = _PROJECT_ROOT / ".containment"
     dockerfile: Path = path / "Dockerfile"
     os_packages: Path = path / "os_packages.json"
     lang_packages: Path = path / "lang_packages.json"
@@ -34,7 +35,7 @@ class _ProjectConfig(Object):
 
 @singleton
 class _PersonalConfig(Object):
-    path: Path = _HOME / ".containment"
+    directory: Path = _HOME / ".containment"
     projects: Path = path / "projects"
     os_packages: Path = path / "os_packages.json"
     lang_packages: Path = path / "lang_packages.json"
@@ -43,7 +44,8 @@ class _PersonalConfig(Object):
 
 @singleton
 class _ProjectCustomization(Object):
-    path: Path = _HOME / ".containment" / "projects" / _PROJECT_ROOT.name
+    # The attribute path should be named 'directory'
+    directory: Path = _HOME / ".containment" / "projects" / _PROJECT_ROOT.name
     dockerfile: Path = path / "Dockerfile"
     runfile: Path = path / "run_containment.sh"
     entrypoint: Path = path / "entrypoint.sh"
@@ -53,7 +55,7 @@ class _ProjectCustomization(Object):
 
 @singleton
 class _Config(Object):
-    name: Path = _PROJECT_ROOT.name
+    directory: Path = _PROJECT_ROOT.name
     tag: str = f"containment/{name}"
     uid: int = os.getuid()
     user: str = os.path.basename(os.path.expanduser("~"))

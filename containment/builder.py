@@ -18,7 +18,7 @@ class Context:
         COPY    ./entrypoint.sh entrypoint.sh
         RUN     chmod +x entrypoint.sh"""
         self.entrypoint_text = f"""#!{config.shell}
-        cd {config.project_config.path}
+        cd {config.project_config.directory}
         sudo sed -ie 's/docker:x:[0-9]*:{config.user}/docker:x:{config.docker_gid}:{config.user}/g' /etc/group
         sudo usermod -s {config.shell} {config.user}
         exec {config.shell}"""
@@ -33,7 +33,7 @@ class Context:
             self.run_text = f"""docker run -it \
                            -v /var/run/docker.sock:/var/run/docker.sock \
                            -v {config.home}:{config.home} \
-                           -v {config.project_config.path}:{config.project_config.path} \
+                           -v {config.project_config.directory}:{config.project_config.directory} \
                            -v {ssh_auth_sock_parent} \
                            -e SSH_AUTH_SOCK={ssh_auth_sock} \
                            --entrypoint=/entrypoint.sh -u {config.user}:{config.docker_gid} {config.tag}:latest"""
@@ -41,7 +41,7 @@ class Context:
             self.run_text = f"""docker run -it \
                            -v /var/run/docker.sock:/var/run/docker.sock \
                            -v {config.home}:{config.home} \
-                           -v {config.project_config.path}:{config.project_config.path} \
+                           -v {config.project_config.directory}:{config.project_config.directory} \
                            --entrypoint=/entrypoint.sh -u {config.user}:{config.docker_gid} {config.tag}:latest"""
 
         self.externalbasis = "ubuntu"
@@ -97,7 +97,7 @@ class CommandLineInterface:
         Usage:
           containment pave_profile
         """
-        config.personal_config.path.mkdir()
+        config.personal_config.directory.mkdir()
         json.dump(
             config.personal_config.package_list,
             config.personal_config.os_packages.open(mode="w"),
@@ -110,7 +110,7 @@ class CommandLineInterface:
         Usage:
           containment pave_project
         """
-        config.project_customization.path.mkdir()
+        config.project_customization.directory.mkdir()
         config.project_customization.entrypoint.write_text(
             context.entrypoint_text
         )
@@ -128,8 +128,9 @@ class CommandLineInterface:
         """
         print("*******************")
         print("inside pave_project")
-        config.project_config.path.mkdir()
-        print(config.project_config.path.absolute())
+        config.project_config.directory.mkdir()
+        print(config.project_config.directory.absolute())
+        
         config.project_config.dockerfile.write_text(context.base_text)
         config.project_config.os_packages.write_text("[]")
         config.project_config.lang_packages.write_text("{}")
@@ -138,13 +139,13 @@ class CommandLineInterface:
         config.project_config.dockerfile.write_text(context.run_text)
 
     def ensure_config(self):
-        if not config.project_config.path.is_dir():
-            print("config.project_config.path.absolute(): ",
-                  config.project_config.path.absolute())
+        if not config.project_config.directory.is_dir():
+            print("config.project_config.directory.absolute(): ",
+                  config.project_config.directory.absolute())
             self.pave_project()
-        if not config.personal_config.path.is_dir():
+        if not config.personal_config.directory.is_dir():
             self.pave_profile()
-        if not config.project_customization.path.is_dir():
+        if not config.project_customization.directory.is_dir():
             self.pave_project()
 
     def write_dockerfile(self):
@@ -181,7 +182,7 @@ class CommandLineInterface:
         docker_build = docker.from_env().api.build
         build_actions = []
         for a in docker_build(
-            str(config.project_customization.path), tag=config.tag
+            str(config.project_customization.directory), tag=config.tag
         ):
             build_actions.append(a)
 
