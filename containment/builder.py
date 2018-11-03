@@ -129,6 +129,7 @@ class CommandLineInterface:
         print("*******************")
         print("inside pave_project")
         config.project_config.path.mkdir()
+        print(config.project_config.path.absolute())
         config.project_config.dockerfile.write_text(context.base_text)
         config.project_config.os_packages.write_text("[]")
         config.project_config.lang_packages.write_text("{}")
