@@ -23,13 +23,18 @@ def apply_operations(stop_index):
 @apply_operations(1)
 class EnsureConfigOnly(CommandLineInterface): pass
 
-def test_ensure_config(tmpdir):
+def test_pave_community(tmpdir):
     print(tmpdir)
     print(EnsureConfigOnly)
     
     with mock.patch('containment.cli.activate.CommandLineInterface',
                     new=EnsureConfigOnly) as CLIO:
-        with mock.patch('containment.builder.context') as mcon:
-            print(EnsureConfigOnly)
-            c = CLIO()
-            print(dir(c))
+        with mock.patch('containment.builder.context') as mcontext:
+            with mock.patch('containment.builder.config') as mconfig:
+                print(EnsureConfigOnly)
+                c = CLIO()
+                #print(dir(c))
+                c.ensure_config()
+                print((mcontext.method_calls))
+                print((mconfig.method_calls))
+                #print(dir(mcontext))

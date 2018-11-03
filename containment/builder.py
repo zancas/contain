@@ -51,6 +51,7 @@ class Context:
 context = Context()
 
 class CommandLineInterface:
+    """Why did I put his in this module?  Why not cli.py?"""
     def __init__(self):
         self.pkg_install_cmds = {
             "debian": "apt install -y",
@@ -125,6 +126,8 @@ class CommandLineInterface:
         Usage:
           containment pave_community
         """
+        print("*******************")
+        print("inside pave_community")
         config.project_config.path.mkdir()
         config.project_config.dockerfile.write_text(context.base_text)
         config.project_config.os_packages.write_text("[]")
@@ -135,6 +138,8 @@ class CommandLineInterface:
 
     def ensure_config(self):
         if not config.project_config.path.is_dir():
+            print("config.project_config.path.absolute(): ",
+                  config.project_config.path.absolute())
             self.pave_community()
         if not config.personal_config.path.is_dir():
             self.pave_profile()
