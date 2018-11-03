@@ -23,12 +23,6 @@ def apply_operations(stop_index):
 @apply_operations(1)
 class EnsureConfigOnly(CommandLineInterface): pass
 
-@apply_operations(2)
-class FirstTwo(CommandLineInterface): pass
-
-@apply_operations(3)
-class FirstThree(CommandLineInterface): pass
-
 def test_ensure_config(tmpdir):
     print(tmpdir)
     print(EnsureConfigOnly)
@@ -39,47 +33,3 @@ def test_ensure_config(tmpdir):
             print(EnsureConfigOnly)
             c = CLIO()
             print(dir(c))
-
-
-def test_construction(initialoperations, monkeypatch):
-    """Test activation under ideal conditions."""
-    with monkeypatch.context() as c:
-        monkeypatch.setattr("..builder.CommandLineInterface",
-                            initialoperations(3))
-        actfun()
-
-
-def test_write_dockerfile(monkeypatch):
-    """Test activation under ideal conditions."""
-    def initialoperations():
-        newcli = CommandLineInterface()
-        newcli.build = lambda: print("build")
-        newcli.run = lambda: print("run")
-        return newcli
-
-    with monkeypatch.context() as m:
-        m.setattr(activate, "CommandLineInterface", initialoperations)
-        actfun()
-
-
-def test_build(monkeypatch):
-    """Test activation under ideal conditions."""
-    def initialoperations():
-        newcli = CommandLineInterface()
-        newcli.run = lambda: print("run")
-        return newcli
-
-    with monkeypatch.context() as m:
-        m.setattr(activate, "CommandLineInterface", initialoperations)
-        actfun()
-
-
-def test_run(monkeypatch):
-    """Test activation under ideal conditions."""
-    def initialoperations():
-        newcli = CommandLineInterface()
-        return newcli
-
-    with monkeypatch.context() as m:
-        m.setattr(activate, "CommandLineInterface", initialoperations)
-        actfun()
