@@ -121,13 +121,13 @@ class CommandLineInterface:
         config.project_customization.lang_packages.write_text("{}")
         self.write_dockerfile()
 
-    def pave_community(self):
+    def pave_project(self):
         """
         Usage:
-          containment pave_community
+          containment pave_project
         """
         print("*******************")
-        print("inside pave_community")
+        print("inside pave_project")
         config.project_config.path.mkdir()
         config.project_config.dockerfile.write_text(context.base_text)
         config.project_config.os_packages.write_text("[]")
@@ -140,7 +140,7 @@ class CommandLineInterface:
         if not config.project_config.path.is_dir():
             print("config.project_config.path.absolute(): ",
                   config.project_config.path.absolute())
-            self.pave_community()
+            self.pave_project()
         if not config.personal_config.path.is_dir():
             self.pave_profile()
         if not config.project_customization.path.is_dir():

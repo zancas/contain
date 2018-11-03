@@ -11,7 +11,7 @@ from ....cli import activate
 from ....config import config
 
 
-def test_pave_community(ensureconfig_mockcli, tmpdir):
+def test_pave_project(ensureconfig_mockcli, tmpdir):
     print(dir(config.project_config))
     config.project_config.path = Path(os.path.join(tmpdir, ".containment"))
     print(config.project_config.path)
@@ -19,7 +19,7 @@ def test_pave_community(ensureconfig_mockcli, tmpdir):
                     new=ensureconfig_mockcli) as CLIO,\
          mock.patch('containment.builder.context') as mcontext,\
          mock.patch('containment.builder.config') as mconfig:
-        # The following line causes the code to enter pave_community.
+        # The following line causes the code to enter pave_project.
         mconfig.project_config.path.is_dir.return_value = \
             False
         CLIO().ensure_config()
