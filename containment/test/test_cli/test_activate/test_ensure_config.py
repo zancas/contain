@@ -7,49 +7,16 @@ from ....builder import CommandLineInterface
 from ....cli.activate import activate as actfun
 from ....cli import activate
 
-mockattributes = ("ensure_config", "write_dockerfile", "build", "run")
-
-
-def apply_operations(stop_index):
-    def actual_decorator(cli_cls):
-        raw_klass = cli_cls.__bases__[0]
-        print(id(raw_klass))
-        for stub in mockattributes[stop_index:]:
-            setattr(raw_klass, stub, mock.MagicMock(name=stub))
-        return raw_klass
-
-    return actual_decorator
-
-@apply_operations(1)
-class EnsureConfigOnly(CommandLineInterface): pass
-
-def test_pave_community(tmpdir):
-    print(tmpdir)
-    print(EnsureConfigOnly)
-    
-    with mock.patch('containment.cli.activate.CommandLineInterface',
-                    new=EnsureConfigOnly) as CLIO:
-        with mock.patch('containment.builder.context') as mcontext:
-            with mock.patch('containment.builder.config') as mconfig:
-                mconfig.project_config.path.is_dir.return_value = \
-                    False
-                print(EnsureConfigOnly)
-                c = CLIO()
-                #print(dir(c))
-                c.ensure_config()
-                print((mcontext.method_calls))
-                print((mconfig.method_calls))
-                #print(dir(mcontext))
 
 def test_fixturization(ensureconfig_mockcli):
     with mock.patch('containment.cli.activate.CommandLineInterface',
                     new=ensureconfig_mockcli) as CLIO,\
-         mock.patch('containment.builder.context') as mcontext:
+         mock.patch('containment.builder.context') as mcontext,\
+         mock.patch('containment.builder.config') as mconfig:
         print(CLIO.ensure_config)
         print(CLIO.write_dockerfile)
         mconfig.project_config.path.is_dir.return_value = \
             False
-        print(EnsureConfigOnly)
         c = CLIO()
         #print(dir(c))
         c.ensure_config()
