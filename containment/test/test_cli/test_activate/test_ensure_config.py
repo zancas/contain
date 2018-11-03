@@ -3,9 +3,9 @@
 import pytest
 from unittest import mock
 
-from ..builder import CommandLineInterface
-from ..cli.activate import activate as actfun
-from ..cli import activate
+from ....builder import CommandLineInterface
+from ....cli.activate import activate as actfun
+from ....cli import activate
 
 mockattributes = ("ensure_config", "write_dockerfile", "build", "run")
 
