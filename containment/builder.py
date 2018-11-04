@@ -105,10 +105,10 @@ class CommandLineInterface:
         json.dump({}, config.personal_config.lang_packages.open(mode="w"))
         config.personal_config.projects.mkdir()
 
-    def pave_project(self):
+    def pave_project_customization(self):
         """
         Usage:
-          containment pave_project
+          containment pave_project_customization
         """
         config.project_customization.directory.mkdir()
         config.project_customization.entrypoint.write_text(
