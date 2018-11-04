@@ -7,6 +7,7 @@ import pytest
 from unittest import mock
 
 from ....builder import CommandLineInterface
+from ....config import config
 
 
 @pytest.fixture
@@ -25,4 +26,5 @@ def test_pave_project(ensureconfig_mockcli):
             'containment.config._PersonalConfig.directory') as mpersdir,\
         mock.patch(
             'containment.config._ProjectCustomization.directory') as mpcdir:
-        ensureconfig_mockcli.display_config()    
+        config.project_config.directory.is_dir.return_value = False
+        ensureconfig_mockcli.ensure_config()
