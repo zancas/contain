@@ -105,6 +105,9 @@ class CommandLineInterface:
         json.dump({}, config.personal_config.lang_packages.open(mode="w"))
         config.personal_config.projects.mkdir()
 
+    def display_config(self):
+        print(config.directory)
+
     def pave_project_customization(self):
         """
         Usage:
