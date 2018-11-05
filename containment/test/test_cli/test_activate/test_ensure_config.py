@@ -26,15 +26,15 @@ def test_pave_project(ensureconfig_mockcli, tmpdir):
     projconf.mkdir()
     projcontainconf = projconf.joinpath('.containment')
     with mock.patch(
-            'containment.config._Config.directory'
-        ) as mconfdir,\
-        mock.patch(
-            'containment.config._ProjectConfig.directory', new=projcontainconf
-        ) as mprojdir,\
-        mock.patch(
-            'containment.config._PersonalConfig.directory'
-        ) as mpersdir,\
-        mock.patch(
-            'containment.config._ProjectCustomization.directory'
-        ) as mpcdir:
+    'containment.config._Config.directory'
+    ) as mconfdir,\
+    mock.patch(
+    'containment.config._ProjectConfig.directory', new=projcontainconf
+    ) as mprojdir,\
+    mock.patch(
+    'containment.config._PersonalConfig.directory'
+    ) as mpersdir,\
+    mock.patch(
+    'containment.config._ProjectCustomization.directory'
+    ) as mpcdir:
         ensureconfig_mockcli.ensure_config()
