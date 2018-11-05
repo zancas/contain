@@ -21,12 +21,15 @@ def ensureconfig_mockcli():
 
 def test_pave_project(ensureconfig_mockcli, tmpdir):
     persconf = Path(tmpdir).joinpath("USERHOME")
-    projconf = persconf.joinpath("PROJECT").joinpath('.containment')
+    persconf.mkdir()
+    projconf = persconf.joinpath("PROJECT")
+    projconf.mkdir()
+    projcontainconf = projconf.joinpath('.containment')
     with mock.patch(
             'containment.config._Config.directory'
         ) as mconfdir,\
         mock.patch(
-            'containment.config._ProjectConfig.directory', new=projconf
+            'containment.config._ProjectConfig.directory', new=projcontainconf
         ) as mprojdir,\
         mock.patch(
             'containment.config._PersonalConfig.directory'
