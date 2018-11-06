@@ -129,9 +129,13 @@ class CommandLineInterface:
         print("*******************")
         print("inside pave_project")
         config.project_config.directory.mkdir()
+        print("config.project_config.directory.absolute(): ")
         print(config.project_config.directory.absolute())
-        
+        print(config.project_config.directory.is_dir())
         config.project_config.dockerfile.write_text(context.base_text)
+        print("config.project_config.dockerfile.absolute(): ")
+        print(config.project_config.dockerfile.absolute())
+
         config.project_config.os_packages.write_text("[]")
         config.project_config.lang_packages.write_text("{}")
         config.project_config.dockerfile.write_text(context.base_text)
@@ -140,12 +144,12 @@ class CommandLineInterface:
 
     def ensure_config(self):
         if not config.project_config.directory.is_dir():
-            print("config.project_config.directory.absolute(): ",
-                  config.project_config.directory.absolute())
             self.pave_project()
         if not config.personal_config.directory.is_dir():
+            print("BADBADBADBADBADBADBADBADBADBADBADBAD")
             self.pave_profile()
         if not config.project_customization.directory.is_dir():
+            print("BADBADBADBADBADBADBADBADBADBADBADBAD")
             self.pave_project()
 
     def write_dockerfile(self):

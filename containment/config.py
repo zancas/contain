@@ -27,6 +27,7 @@ def _get_docker_gid() -> Bounded[int, 0]:
 @singleton
 class _ProjectConfig(Object):
     directory: Path = _PROJECT_ROOT / ".containment"
+    print(" evaluation of class statements")
     dockerfile: Path = directory / "Dockerfile"
     os_packages: Path = directory / "os_packages.json"
     lang_packages: Path = directory / "lang_packages.json"
